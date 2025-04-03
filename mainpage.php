@@ -169,6 +169,11 @@
             transition: color 0.3s;
         }
         
+        footer .contact-us li ,
+        footer .footer-paragraph { 
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
         .footer-links a:hover {
             color: white;
         }
@@ -561,7 +566,7 @@
                         <i class="fas fa-hand-holding-medical me-2"></i>
                         CareConnect
                     </h3>
-                    <p class="text-muted">Connecting patients with professional nursing care in the comfort of their homes.</p>
+                    <p class=" footer-paragraph">Connecting patients with professional nursing care in the comfort of their homes.</p>
                     <div class="d-flex gap-3 mt-4">
                         <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
@@ -594,10 +599,10 @@
                 
                 <div class="col-lg-4 col-md-4">
                     <h4 class="h5 text-white mb-4">Contact Us</h4>
-                    <ul class="list-unstyled text-muted">
+                    <ul class="list-unstyled text-muted contact-us">
                         <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> 123 Healthcare St, Medical City</li>
-                        <li class="mb-2"><i class="fas fa-phone me-2"></i> (123) 456-7890</li>
-                        <li class="mb-2"><i class="fas fa-envelope me-2"></i> info@careconnect.com</li>
+                        <li class="mb-2 "><i class="fas fa-phone me-2"></i> (123) 456-7890</li>
+                        <li class="mb-2 "><i class="fas fa-envelope me-2"></i> info@careconnect.com</li>
                     </ul>
                 </div>
             </div>

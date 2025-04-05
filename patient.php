@@ -130,6 +130,21 @@
             transform: translateY(-5px);
             box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
         }
+
+        /* Add to your style section */
+        .map-placeholder {
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .request-detail-row {
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
     </style>
 </head>
 
@@ -634,12 +649,12 @@
                                         <div class="row">
                                             <!-- Nurse Card 1 -->
                                             <div class="col-md-4 mb-4">
-                                                <div class="card h-100 border-start border-primary border-4"  data-nurse-id="1">
+                                                <div class="card h-100 border-start border-primary border-4" data-nurse-id="1">
                                                     <div class="card-body text-center">
                                                         <img src="https://randomuser.me/api/portraits/women/44.jpg"
                                                             class="rounded-circle mb-3" width="100" alt="Nurse">
                                                         <h5 class="card-title">Sarah Johnson</h5>
-                                                        
+
                                                         <p class="text-muted small">Wound Care Specialist</p>
                                                         <div class="mb-3">
                                                             <i class="fas fa-star text-warning"></i>
@@ -659,7 +674,7 @@
 
                                             <!-- Nurse Card 2 -->
                                             <div class="col-md-4 mb-4">
-                                                <div class="card h-100 border-start border-success border-4"  data-nurse-id="2">
+                                                <div class="card h-100 border-start border-success border-4" data-nurse-id="2">
                                                     <div class="card-body text-center">
                                                         <img src="https://randomuser.me/api/portraits/men/32.jpg"
                                                             class="rounded-circle mb-3" width="100" alt="Nurse">
@@ -681,10 +696,9 @@
                                                 </div>
                                             </div>
 
-                                            
                                             <!-- Nurse Card 3 -->
                                             <div class="col-md-4 mb-4">
-                                                <div class="card h-100 border-start border-info border-4"  data-nurse-id="3">
+                                                <div class="card h-100 border-start border-info border-4" data-nurse-id="3">
                                                     <div class="card-body text-center">
                                                         <img src="https://randomuser.me/api/portraits/men/75.jpg"
                                                             class="rounded-circle mb-3" width="100" alt="Nurse">
@@ -996,109 +1010,109 @@
     </div>
 
     <!-- Nurse Profile Modal -->
-<div class="modal fade" id="nurseProfileModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="nurseProfileModalLabel">Nurse Profile</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row">
-          <!-- Left Column -->
-          <div class="col-md-4 text-center">
-            <img id="nurseProfilePhoto" src="" class="rounded-circle mb-3" width="150" alt="Nurse Photo">
-            <h4 id="nurseProfileName"></h4>
-            <p class="text-muted" id="nurseProfileSpecialty"></p>
-            
-            <div class="mb-3">
-              <div id="nurseProfileRating"></div>
-              <small class="text-muted" id="nurseReviewCount"></small>
+    <div class="modal fade" id="nurseProfileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="nurseProfileModalLabel">Nurse Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-md-4 text-center">
+                            <img id="nurseProfilePhoto" src="" class="rounded-circle mb-3" width="150" alt="Nurse Photo">
+                            <h4 id="nurseProfileName"></h4>
+                            <p class="text-muted" id="nurseProfileSpecialty"></p>
+
+                            <div class="mb-3">
+                                <div id="nurseProfileRating"></div>
+                                <small class="text-muted" id="nurseReviewCount"></small>
+                            </div>
+
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">Quick Stats</h6>
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Requests:</span>
+                                        <strong id="nurseTotalRequests">0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Experience:</span>
+                                        <strong id="nurseExperience">0 years</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Response Time:</span>
+                                        <strong id="nurseResponseTime">-</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-md-8">
+                            <ul class="nav nav-tabs" id="nurseProfileTabs">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-bs-toggle="tab" href="#nurseDetails">Details</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#nurseSchedule">Schedule</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#nurseCertifications">Certifications</a>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content p-3 border border-top-0 rounded-bottom">
+                                <!-- Details Tab -->
+                                <div class="tab-pane fade show active" id="nurseDetails">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <p><strong>Age:</strong> <span id="nurseAge">-</span></p>
+                                            <p><strong>Gender:</strong> <span id="nurseGender">-</span></p>
+                                            <p><strong>Languages:</strong> <span id="nurseLanguages">English</span></p>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <p><strong>Location:</strong> <span id="nurseLocation">-</span></p>
+                                            <p><strong>Hourly Rate:</strong> <span id="nurseRate">-</span></p>
+                                            <p><strong>Last Active:</strong> <span id="nurseLastActive">-</span></p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <h6>About</h6>
+                                    <p id="nurseBio">No bio available.</p>
+                                </div>
+
+                                <!-- Schedule Tab -->
+                                <div class="tab-pane fade" id="nurseSchedule">
+                                    <div class="alert alert-info small">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Green indicates available time slots
+                                    </div>
+                                    <div id="nurseAvailabilityCalendar"></div>
+                                    <div class="mt-3">
+                                        <h6>Typical Availability</h6>
+                                        <ul id="nurseGeneralAvailability"></ul>
+                                    </div>
+                                </div>
+
+                                <!-- Certifications Tab -->
+                                <div class="tab-pane fade" id="nurseCertifications">
+                                    <div class="row" id="nurseCertificationsList">
+                                        <!-- Will be filled dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="requestThisNurseBtn">Request This Nurse</button>
+                </div>
             </div>
-            
-            <div class="card mb-3">
-              <div class="card-body">
-                <h6 class="card-title">Quick Stats</h6>
-                <div class="d-flex justify-content-between small">
-                  <span>Requests:</span>
-                  <strong id="nurseTotalRequests">0</strong>
-                </div>
-                <div class="d-flex justify-content-between small">
-                  <span>Experience:</span>
-                  <strong id="nurseExperience">0 years</strong>
-                </div>
-                <div class="d-flex justify-content-between small">
-                  <span>Response Time:</span>
-                  <strong id="nurseResponseTime">-</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Right Column -->
-          <div class="col-md-8">
-            <ul class="nav nav-tabs" id="nurseProfileTabs">
-              <li class="nav-item">
-                <a class="nav-link active" data-bs-toggle="tab" href="#nurseDetails">Details</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#nurseSchedule">Schedule</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#nurseCertifications">Certifications</a>
-              </li>
-            </ul>
-            
-            <div class="tab-content p-3 border border-top-0 rounded-bottom">
-              <!-- Details Tab -->
-              <div class="tab-pane fade show active" id="nurseDetails">
-                <div class="row">
-                  <div class="col-sm-6">
-                    <p><strong>Age:</strong> <span id="nurseAge">-</span></p>
-                    <p><strong>Gender:</strong> <span id="nurseGender">-</span></p>
-                    <p><strong>Languages:</strong> <span id="nurseLanguages">English</span></p>
-                  </div>
-                  <div class="col-sm-6">
-                    <p><strong>Location:</strong> <span id="nurseLocation">-</span></p>
-                    <p><strong>Hourly Rate:</strong> <span id="nurseRate">-</span></p>
-                    <p><strong>Last Active:</strong> <span id="nurseLastActive">-</span></p>
-                  </div>
-                </div>
-                <hr>
-                <h6>About</h6>
-                <p id="nurseBio">No bio available.</p>
-              </div>
-              
-              <!-- Schedule Tab -->
-              <div class="tab-pane fade" id="nurseSchedule">
-                <div class="alert alert-info small">
-                  <i class="fas fa-info-circle me-2"></i> 
-                  Green indicates available time slots
-                </div>
-                <div id="nurseAvailabilityCalendar"></div>
-                <div class="mt-3">
-                  <h6>Typical Availability</h6>
-                  <ul id="nurseGeneralAvailability"></ul>
-                </div>
-              </div>
-              
-              <!-- Certifications Tab -->
-              <div class="tab-pane fade" id="nurseCertifications">
-                <div class="row" id="nurseCertificationsList">
-                  <!-- Will be filled dynamically -->
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="requestThisNurseBtn">Request This Nurse</button>
-      </div>
     </div>
-  </div>
-</div>
 
     <!-- Rating Modal -->
     <div class="modal fade" id="ratingModal" tabindex="-1" aria-hidden="true">
@@ -1163,6 +1177,126 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <a href="logout.php" class="btn btn-danger">Yes, Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Details Modal -->
+    <div class="modal fade" id="requestDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Service Request Details <span id="requestIdBadge" class="badge bg-primary ms-2"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Service Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold">Service Type:</div>
+                                        <div class="col-sm-7" id="detailServiceType"></div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold">Request Date:</div>
+                                        <div class="col-sm-7" id="detailRequestDate"></div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold">Scheduled Time:</div>
+                                        <div class="col-sm-7" id="detailScheduledTime"></div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold">Status:</div>
+                                        <div class="col-sm-7" id="detailStatus"></div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold">Urgency:</div>
+                                        <div class="col-sm-7" id="detailUrgency"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Nurse Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img id="detailNursePhoto" src="https://via.placeholder.com/60" class="rounded-circle me-3" width="60" alt="Nurse">
+                                        <div>
+                                            <h6 class="mb-0" id="detailNurseName"></h6>
+                                            <small class="text-muted" id="detailNurseSpecialty"></small>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold">Contact Number:</div>
+                                        <div class="col-sm-7" id="detailNursePhone"></div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold">Rating:</div>
+                                        <div class="col-sm-7" id="detailNurseRating"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Patient Details</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold">Patient Name:</div>
+                                        <div class="col-sm-7" id="detailPatientName"></div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold">Gender:</div>
+                                        <div class="col-sm-7" id="detailPatientGender"></div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold">Care Needed:</div>
+                                        <div class="col-sm-7" id="detailCareNeeded"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Service Location</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="detailServiceAddress" class="mb-3"></div>
+                                    <div class="map-placeholder bg-light p-3 text-center rounded">
+                                        <i class="fas fa-map-marker-alt fa-2x text-muted mb-2"></i>
+                                        <p class="small text-muted">Map would display here</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Special Instructions</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="detailSpecialInstructions"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="contactNurseBtn">
+                        <i class="fas fa-comment-dots me-1"></i> Contact Nurse
+                    </button>
                 </div>
             </div>
         </div>
@@ -1398,70 +1532,81 @@
 
 
         // Add this to your existing script section
-document.querySelectorAll('.view-profile-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const card = this.closest('.card');
-    const nurseData = {
-      id: card.dataset.nurseId,
-      name: card.querySelector('.card-title').textContent,
-      specialty: card.querySelector('.text-muted').textContent,
-      photo: card.querySelector('img').src,
-      rating: 4.5, // Would normally come from data attributes
-      reviews: 28,
-      // Add more data points as needed
-    };
-    
-    // Populate the modal
-    populateNurseProfile(nurseData);
-    
-    // Show the modal
-    new bootstrap.Modal(document.getElementById('nurseProfileModal')).show();
-  });
-});
+        document.querySelectorAll('.view-profile-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.card');
+                const nurseData = {
+                    id: card.dataset.nurseId,
+                    name: card.querySelector('.card-title').textContent,
+                    specialty: card.querySelector('.text-muted').textContent,
+                    photo: card.querySelector('img').src,
+                    rating: 4.5, // Would normally come from data attributes
+                    reviews: 28,
+                    // Add more data points as needed
+                };
 
-function populateNurseProfile(data) {
-  // Basic Info
-  document.getElementById('nurseProfileName').textContent = data.name;
-  document.getElementById('nurseProfileSpecialty').textContent = data.specialty;
-  document.getElementById('nurseProfilePhoto').src = data.photo;
-  
-  // Ratings
-  const ratingContainer = document.getElementById('nurseProfileRating');
-  ratingContainer.innerHTML = '';
-  for (let i = 1; i <= 5; i++) {
-    const star = document.createElement('i');
-    star.className = `fas fa-star ${i <= Math.floor(data.rating) ? 'text-warning' : 
+                // Populate the modal
+                populateNurseProfile(nurseData);
+
+                // Show the modal
+                new bootstrap.Modal(document.getElementById('nurseProfileModal')).show();
+            });
+        });
+
+        function populateNurseProfile(data) {
+            // Basic Info
+            document.getElementById('nurseProfileName').textContent = data.name;
+            document.getElementById('nurseProfileSpecialty').textContent = data.specialty;
+            document.getElementById('nurseProfilePhoto').src = data.photo;
+
+            // Ratings
+            const ratingContainer = document.getElementById('nurseProfileRating');
+            ratingContainer.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('i');
+                star.className = `fas fa-star ${i <= Math.floor(data.rating) ? 'text-warning' : 
                       (i === Math.ceil(data.rating) && data.rating % 1 > 0 ? 'fa-star-half-alt text-warning' : 'far fa-star text-warning')}`;
-    ratingContainer.appendChild(star);
-  }
-  document.getElementById('nurseReviewCount').textContent = `(${data.reviews} reviews)`;
-  
-  // Sample data - in real app you'd fetch this from an API
-  document.getElementById('nurseTotalRequests').textContent = '142';
-  document.getElementById('nurseExperience').textContent = '8 years';
-  document.getElementById('nurseResponseTime').textContent = 'Within 1 hour';
-  document.getElementById('nurseAge').textContent = '34';
-  document.getElementById('nurseGender').textContent = 'Female';
-  document.getElementById('nurseLanguages').textContent = 'English, Spanish';
-  document.getElementById('nurseLocation').textContent = 'Within 5 miles of you';
-  document.getElementById('nurseRate').textContent = '$45/hour';
-  document.getElementById('nurseLastActive').textContent = 'Active today';
-  document.getElementById('nurseBio').textContent = 
-    'Certified wound care specialist with 8 years of hospital experience. Specializing in post-surgical care and diabetic wound management.';
-  
-  // Certifications
-  const certsContainer = document.getElementById('nurseCertificationsList');
-  certsContainer.innerHTML = '';
-  const certifications = [
-    { name: 'RN License', date: '2015', issuer: 'State Board' },
-    { name: 'Wound Care Certification', date: '2018', issuer: 'WOCNCB' },
-    { name: 'CPR/BLS', date: '2023', issuer: 'American Heart Association' }
-  ];
-  
-  certifications.forEach(cert => {
-    const col = document.createElement('div');
-    col.className = 'col-md-6 mb-3';
-    col.innerHTML = `
+                ratingContainer.appendChild(star);
+            }
+            document.getElementById('nurseReviewCount').textContent = `(${data.reviews} reviews)`;
+
+            // Sample data - in real app you'd fetch this from an API
+            document.getElementById('nurseTotalRequests').textContent = '142';
+            document.getElementById('nurseExperience').textContent = '8 years';
+            document.getElementById('nurseResponseTime').textContent = 'Within 1 hour';
+            document.getElementById('nurseAge').textContent = '34';
+            document.getElementById('nurseGender').textContent = 'Female';
+            document.getElementById('nurseLanguages').textContent = 'English, Spanish';
+            document.getElementById('nurseLocation').textContent = 'Within 5 miles of you';
+            document.getElementById('nurseRate').textContent = '$45/hour';
+            document.getElementById('nurseLastActive').textContent = 'Active today';
+            document.getElementById('nurseBio').textContent =
+                'Certified wound care specialist with 8 years of hospital experience. Specializing in post-surgical care and diabetic wound management.';
+
+            // Certifications
+            const certsContainer = document.getElementById('nurseCertificationsList');
+            certsContainer.innerHTML = '';
+            const certifications = [{
+                    name: 'RN License',
+                    date: '2015',
+                    issuer: 'State Board'
+                },
+                {
+                    name: 'Wound Care Certification',
+                    date: '2018',
+                    issuer: 'WOCNCB'
+                },
+                {
+                    name: 'CPR/BLS',
+                    date: '2023',
+                    issuer: 'American Heart Association'
+                }
+            ];
+
+            certifications.forEach(cert => {
+                const col = document.createElement('div');
+                col.className = 'col-md-6 mb-3';
+                col.innerHTML = `
       <div class="card h-100">
         <div class="card-body">
           <h6 class="card-title">${cert.name}</h6>
@@ -1470,27 +1615,104 @@ function populateNurseProfile(data) {
         </div>
       </div>
     `;
-    certsContainer.appendChild(col);
-  });
-  
-  // Schedule - simple example
-  const availabilityList = document.getElementById('nurseGeneralAvailability');
-  availabilityList.innerHTML = '';
-  ['Monday-Friday: 9am-5pm', 'Saturday: 10am-2pm', 'Sunday: Not available'].forEach(time => {
-    const li = document.createElement('li');
-    li.textContent = time;
-    availabilityList.appendChild(li);
-  });
-  
-  // Connect request button
-  document.getElementById('requestThisNurseBtn').onclick = function() {
-    // You could pre-fill the request form with this nurse's ID
-    bootstrap.Modal.getInstance(document.getElementById('nurseProfileModal')).hide();
-    // Optionally open the request form tab
-    document.querySelector('[href="#request-service"]').click();
-  };
-}
+                certsContainer.appendChild(col);
+            });
+
+            // Schedule - simple example
+            const availabilityList = document.getElementById('nurseGeneralAvailability');
+            availabilityList.innerHTML = '';
+            ['Monday-Friday: 9am-5pm', 'Saturday: 10am-2pm', 'Sunday: Not available'].forEach(time => {
+                const li = document.createElement('li');
+                li.textContent = time;
+                availabilityList.appendChild(li);
+            });
+
+            // Connect request button
+            document.getElementById('requestThisNurseBtn').onclick = function() {
+                // You could pre-fill the request form with this nurse's ID
+                bootstrap.Modal.getInstance(document.getElementById('nurseProfileModal')).hide();
+                // Optionally open the request form tab
+                document.querySelector('[href="#request-service"]').click();
+            };
+        }
+
+        // Add this to your existing script section
+        document.querySelectorAll('.btn-outline-primary').forEach(btn => {
+            if (btn.textContent.trim() === 'Details') {
+                btn.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    const requestData = {
+                        id: row.cells[0].textContent,
+                        serviceType: row.cells[1].textContent,
+                        dateTime: row.cells[2].textContent,
+                        nurse: row.cells[3].textContent,
+                        status: row.cells[4].textContent,
+                        // These would normally come from your data source
+                        patientName: "John Patient",
+                        patientGender: "Male",
+                        careNeeded: "Wound Care, Mobility Assistance",
+                        address: "123 Main St, Apt 4B, New York, NY 10001",
+                        instructions: "Please ring doorbell twice. Dog will bark but is friendly.",
+                        urgent: true,
+                        nursePhoto: "https://randomuser.me/api/portraits/women/44.jpg",
+                        nurseSpecialty: "Wound Care Specialist",
+                        nursePhone: "(555) 123-4567",
+                        nurseRating: "4.8 (42 reviews)"
+                    };
+
+                    populateRequestDetails(requestData);
+                    new bootstrap.Modal(document.getElementById('requestDetailsModal')).show();
+                });
+            }
+        });
+
+        function populateRequestDetails(data) {
+            // Basic info
+            document.getElementById('requestIdBadge').textContent = data.id;
+            document.getElementById('detailServiceType').textContent = data.serviceType;
+            document.getElementById('detailRequestDate').textContent = new Date().toLocaleDateString();
+            document.getElementById('detailScheduledTime').textContent = data.dateTime;
+            document.getElementById('detailStatus').innerHTML = `<span class="badge ${getStatusBadgeClass(data.status)}">${data.status}</span>`;
+            document.getElementById('detailUrgency').textContent = data.urgent ? "Urgent" : "Standard";
+
+            // Nurse info
+            document.getElementById('detailNurseName').textContent = data.nurse;
+            document.getElementById('detailNurseSpecialty').textContent = data.nurseSpecialty;
+            document.getElementById('detailNursePhoto').src = data.nursePhoto;
+            document.getElementById('detailNursePhone').textContent = data.nursePhone;
+            document.getElementById('detailNurseRating').innerHTML = `
+    <i class="fas fa-star text-warning"></i>
+    <i class="fas fa-star text-warning"></i>
+    <i class="fas fa-star text-warning"></i>
+    <i class="fas fa-star text-warning"></i>
+    <i class="fas fa-star-half-alt text-warning"></i>
+    <span class="small ms-1">${data.nurseRating}</span>
+  `;
+
+            // Patient info
+            document.getElementById('detailPatientName').textContent = data.patientName;
+            document.getElementById('detailPatientGender').textContent = data.patientGender;
+            document.getElementById('detailCareNeeded').textContent = data.careNeeded;
+
+            // Location and instructions
+            document.getElementById('detailServiceAddress').textContent = data.address;
+            document.getElementById('detailSpecialInstructions').textContent = data.instructions;
+
+            // Connect contact button
+            document.getElementById('contactNurseBtn').onclick = function() {
+                // This would open the messages tab with this nurse pre-selected
+                bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal')).hide();
+                document.querySelector('[href="#messages"]').click();
+            };
+        }
+
+        function getStatusBadgeClass(statusText) {
+            if (statusText.includes("Confirmed")) return "bg-success";
+            if (statusText.includes("Pending")) return "bg-warning";
+            if (statusText.includes("Completed")) return "bg-secondary";
+            if (statusText.includes("Cancelled")) return "bg-danger";
+            return "bg-primary";
+        }
     </script>
 </body>
-
 </html>

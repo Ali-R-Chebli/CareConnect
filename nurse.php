@@ -166,6 +166,43 @@
         .accept-public-request {
             transition: all 0.2s;
         }
+
+        /* Status badges */
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+        }
+
+        /* Table row status indicators */
+        tr[data-status="pending"] {
+            border-left: 4px solid #ffc107;
+        }
+
+        tr[data-status="patient-pending"] {
+            border-left: 4px solid #0dcaf0;
+        }
+
+        tr[data-status="accepted"] {
+            border-left: 4px solid #0d6efd;
+        }
+
+        tr[data-status="completed"] {
+            border-left: 4px solid #198754;
+        }
+
+        tr[data-status="cancelled"] {
+            border-left: 4px solid #6c757d;
+        }
+
+        tr[data-status="expired"] {
+            border-left: 4px solid #212529;
+        }
+
+        /* Hover effects */
+        tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
     </style>
 </head>
 
@@ -195,10 +232,17 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#service-requests" data-bs-toggle="tab">
-                                <i class="fas fa-fw fa-list"></i>
-                                Service Requests
-                                <span class="badge bg-danger ms-2">3</span>
+                            <a class="nav-link" href="#private-requests" data-bs-toggle="tab">
+                                <i class="fas fa-fw fa-envelope"></i>
+                                Private Requests
+                                <span class="badge bg-danger ms-2">2</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#request-status" data-bs-toggle="tab">
+                                <i class="fas fa-fw fa-tasks"></i>
+                                Request Status
+                                <span class="badge bg-info ms-2">New</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -443,8 +487,8 @@
                             <div class="card-header py-3">
                                 <h6 class="m-0 fw-bold text-primary">Available Public Requests</h6>
                             </div>
-                            <div class="card-body">
-                                <div class="list-group list-group-flush">
+                            <div class="card-body p-0"> <!-- Changed to p-0 to remove padding -->
+                                <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;"> <!-- Added scrollable container -->
                                     <!-- Public Request Item 1 -->
                                     <div class="list-group-item">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -501,162 +545,354 @@
                                             <button class="btn btn-sm btn-primary accept-public-request">Accept Request</button>
                                         </div>
                                     </div>
-                                </div>
+                                    <!-- Public Request Item 3 -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">Medication Administration</h6>
+                                                <small class="text-muted">Posted 3 days ago</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Standard</span>
+                                        </div>
+                                        <p class="mb-2">Need nurse to administer insulin injections twice daily for diabetic patient.</p>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i> 1.8 miles away</span>
+                                                <span class="small text-muted ms-3"><i class="fas fa-clock me-1"></i> 8am & 6pm daily</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary accept-public-request">Accept Request</button>
+                                        </div>
+                                    </div>
+                                    <!-- Public Request Item 3 -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">Medication Administration</h6>
+                                                <small class="text-muted">Posted 3 days ago</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Standard</span>
+                                        </div>
+                                        <p class="mb-2">Need nurse to administer insulin injections twice daily for diabetic patient.</p>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i> 1.8 miles away</span>
+                                                <span class="small text-muted ms-3"><i class="fas fa-clock me-1"></i> 8am & 6pm daily</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary accept-public-request">Accept Request</button>
+                                        </div>
+                                    </div>
+                                    <!-- Public Request Item 3 -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">Medication Administration</h6>
+                                                <small class="text-muted">Posted 3 days ago</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Standard</span>
+                                        </div>
+                                        <p class="mb-2">Need nurse to administer insulin injections twice daily for diabetic patient.</p>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i> 1.8 miles away</span>
+                                                <span class="small text-muted ms-3"><i class="fas fa-clock me-1"></i> 8am & 6pm daily</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary accept-public-request">Accept Request</button>
+                                        </div>
+                                    </div>
+                                    <!-- Public Request Item 3 -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">Medication Administration</h6>
+                                                <small class="text-muted">Posted 3 days ago</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Standard</span>
+                                        </div>
+                                        <p class="mb-2">Need nurse to administer insulin injections twice daily for diabetic patient.</p>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i> 1.8 miles away</span>
+                                                <span class="small text-muted ms-3"><i class="fas fa-clock me-1"></i> 8am & 6pm daily</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary accept-public-request">Accept Request</button>
+                                        </div>
+                                    </div>
+                                    <!-- Public Request Item 3 -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">Medication Administration</h6>
+                                                <small class="text-muted">Posted 3 days ago</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Standard</span>
+                                        </div>
+                                        <p class="mb-2">Need nurse to administer insulin injections twice daily for diabetic patient.</p>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i> 1.8 miles away</span>
+                                                <span class="small text-muted ms-3"><i class="fas fa-clock me-1"></i> 8am & 6pm daily</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary accept-public-request">Accept Request</button>
+                                        </div>
+                                    </div>
+                                    <!-- Public Request Item 3 -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">Medication Administration</h6>
+                                                <small class="text-muted">Posted 3 days ago</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Standard</span>
+                                        </div>
+                                        <p class="mb-2">Need nurse to administer insulin injections twice daily for diabetic patient.</p>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i> 1.8 miles away</span>
+                                                <span class="small text-muted ms-3"><i class="fas fa-clock me-1"></i> 8am & 6pm daily</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary accept-public-request">Accept Request</button>
+                                        </div>
+                                    </div>
+                                    <!-- Public Request Item 3 -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">Medication Administration</h6>
+                                                <small class="text-muted">Posted 3 days ago</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Standard</span>
+                                        </div>
+                                        <p class="mb-2">Need nurse to administer insulin injections twice daily for diabetic patient.</p>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i> 1.8 miles away</span>
+                                                <span class="small text-muted ms-3"><i class="fas fa-clock me-1"></i> 8am & 6pm daily</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary accept-public-request">Accept Request</button>
+                                        </div>
+                                    </div>
+                                    <!-- Public Request Item 3 -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">Medication Administration</h6>
+                                                <small class="text-muted">Posted 3 days ago</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Standard</span>
+                                        </div>
+                                        <p class="mb-2">Need nurse to administer insulin injections twice daily for diabetic patient.</p>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i> 1.8 miles away</span>
+                                                <span class="small text-muted ms-3"><i class="fas fa-clock me-1"></i> 8am & 6pm daily</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary accept-public-request">Accept Request</button>
+                                        </div>
+                                    </div>
 
-                                <nav aria-label="Page navigation" class="mt-3">
-                                    <ul class="pagination justify-content-center">
-                                        <li class="page-item disabled">
-                                            <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                        </li>
-                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="#">Next</a>
-                                        </li>
-                                    </ul>
-                                </nav>
+                                    <!-- You can add more request items here -->
+                                    <!-- They will automatically become scrollable when they exceed the max-height -->
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Service Requests Tab -->
-                    <div class="tab-pane fade" id="service-requests">
+
+                    <!-- private requests tab -->
+                    <div class="tab-pane fade" id="private-requests">
                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-                            <h2 class="h4 fw-bold">Service Requests</h2>
+                            <h2 class="h4 fw-bold">Private Requests</h2>
                             <div class="btn-toolbar mb-2 mb-md-0">
                                 <div class="btn-group me-2">
                                     <button class="btn btn-sm btn-outline-secondary">All</button>
-                                    <button class="btn btn-sm btn-outline-secondary">Pending</button>
-                                    <button class="btn btn-sm btn-outline-secondary">Confirmed</button>
-                                    <button class="btn btn-sm btn-outline-secondary">Completed</button>
+                                    <button class="btn btn-sm btn-outline-secondary">New</button>
+                                    <button class="btn btn-sm btn-outline-secondary">Accepted</button>
                                 </div>
                             </div>
                         </div>
 
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
-                                <h6 class="m-0 fw-bold text-primary">Available Requests</h6>
+                                <h6 class="m-0 fw-bold text-primary">Requests Sent Directly to You</h6>
                             </div>
                             <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Request ID</th>
-                                                <th>Service Type</th>
-                                                <th>Patient</th>
-                                                <th>Date/Time</th>
-                                                <th>Distance</th>
-                                                <th>Urgency</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>#HN-2023-045</td>
-                                                <td>Wound Care</td>
-                                                <td>John Patient</td>
-                                                <td>Tomorrow, 10:00 AM</td>
-                                                <td>2.3 miles</td>
-                                                <td><span class="badge bg-danger">Urgent</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary view-request-btn">View</button>
-                                                    <button class="btn btn-sm btn-success accept-request-btn">Accept</button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>#HN-2023-046</td>
-                                                <td>Medication Admin</td>
-                                                <td>Mary Smith</td>
-                                                <td>Friday, 2:00 PM</td>
-                                                <td>3.1 miles</td>
-                                                <td><span class="badge bg-secondary">Standard</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary view-request-btn">View</button>
-                                                    <button class="btn btn-sm btn-success accept-request-btn">Accept</button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>#HN-2023-047</td>
-                                                <td>Physical Therapy</td>
-                                                <td>Robert Johnson</td>
-                                                <td>Nov 15, 9:00 AM</td>
-                                                <td>1.5 miles</td>
-                                                <td><span class="badge bg-secondary">Standard</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary view-request-btn">View</button>
-                                                    <button class="btn btn-sm btn-success accept-request-btn">Accept</button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <div class="list-group list-group-flush">
+                                    <!-- Private Request Item 1 -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">John Smith - Wound Care</h6>
+                                                <small class="text-muted">Requested you specifically - 1 hour ago</small>
+                                            </div>
+                                            <span class="badge bg-warning">Pending</span>
+                                        </div>
+                                        <p class="mb-2">"I need your expertise with my surgical wound care. You helped me last time."</p>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i> 2.1 miles away</span>
+                                                <span class="small text-muted ms-3"><i class="fas fa-clock me-1"></i> Tomorrow 10 AM</span>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-sm btn-success accept-private-request me-2">Accept</button>
+                                                <button class="btn btn-sm btn-outline-danger decline-private-request">Decline</button>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination justify-content-center">
-                                        <li class="page-item disabled">
-                                            <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                    <!-- Private Request Item 2 -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">Mary Johnson - Medication Admin</h6>
+                                                <small class="text-muted">Requested you specifically - 3 hours ago</small>
+                                            </div>
+                                            <span class="badge bg-warning">Pending</span>
+                                        </div>
+                                        <p class="mb-2">"You understand my complex medication schedule better than anyone."</p>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i> 3.5 miles away</span>
+                                                <span class="small text-muted ms-3"><i class="fas fa-clock me-1"></i> Daily at 8 AM</span>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-sm btn-success accept-private-request me-2">Accept</button>
+                                                <button class="btn btn-sm btn-outline-danger decline-private-request">Decline</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- requests status tab -->
+                    <div class="tab-pane fade" id="request-status">
+                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+                            <h2 class="h4 fw-bold">Request Status Dashboard</h2>
+                            <div class="btn-toolbar mb-2 mb-md-0">
+                                <div class="dropdown me-2">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="statusFilter" data-bs-toggle="dropdown">
+                                        <i class="fas fa-filter me-1"></i> Filter Status
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item active" href="#" data-status="all">All Requests</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
                                         </li>
-                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="#">Next</a>
-                                        </li>
+                                        <li><a class="dropdown-item" href="#" data-status="pending">Pending My Response</a></li>
+                                        <li><a class="dropdown-item" href="#" data-status="patient-pending">Waiting Patient Confirmation</a></li>
+                                        <li><a class="dropdown-item" href="#" data-status="accepted">Accepted/Upcoming</a></li>
+                                        <li><a class="dropdown-item" href="#" data-status="completed">Completed</a></li>
+                                        <li><a class="dropdown-item" href="#" data-status="cancelled">Cancelled/Declined</a></li>
+                                        <li><a class="dropdown-item" href="#" data-status="expired">Expired</a></li>
                                     </ul>
-                                </nav>
+                                </div>
+                                <div class="btn-group me-2">
+                                    <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="card shadow">
-                            <div class="card-header py-3">
-                                <h6 class="m-0 fw-bold text-primary">My Accepted Requests</h6>
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 fw-bold text-primary">All Requests Overview</h6>
+                                <div class="small">
+                                    <span class="badge bg-primary me-2">Total: 15</span>
+                                    <span class="badge bg-warning me-2">Pending: 3</span>
+                                    <span class="badge bg-success me-2">Completed: 8</span>
+                                    <span class="badge bg-secondary">Others: 4</span>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
+                                    <table class="table table-bordered table-hover" id="statusTable">
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Request ID</th>
-                                                <th>Service Type</th>
                                                 <th>Patient</th>
+                                                <th>Service</th>
                                                 <th>Date/Time</th>
                                                 <th>Status</th>
+                                                <th>Last Updated</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>#HN-2023-042</td>
-                                                <td>Wound Care</td>
-                                                <td>Sarah Johnson</td>
-                                                <td>Today, 10:00 AM</td>
-                                                <td><span class="badge bg-primary">In Progress</span></td>
+                                            <!-- Pending My Response -->
+                                            <tr data-status="pending">
+                                                <td>#REQ-1024</td>
+                                                <td>John Smith</td>
+                                                <td>Wound Dressing</td>
+                                                <td>Tomorrow, 10:00 AM</td>
+                                                <td><span class="badge bg-warning">Pending Your Acceptance</span></td>
+                                                <td>2 hours ago</td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-outline-primary">Details</button>
-                                                    <button class="btn btn-sm btn-info">Complete</button>
+                                                    <button class="btn btn-sm btn-success me-1">Accept</button>
+                                                    <button class="btn btn-sm btn-outline-danger">Decline</button>
                                                 </td>
                                             </tr>
-                                            <tr>
-                                                <td>#HN-2023-043</td>
+
+                                            <!-- Waiting Patient Confirmation -->
+                                            <tr data-status="patient-pending">
+                                                <td>#REQ-1021</td>
+                                                <td>Mary Johnson</td>
                                                 <td>Medication Admin</td>
-                                                <td>Michael Brown</td>
-                                                <td>Today, 2:00 PM</td>
-                                                <td><span class="badge bg-success">Confirmed</span></td>
+                                                <td>Fri, Nov 17, 2:00 PM</td>
+                                                <td><span class="badge bg-info">Waiting Patient Confirmation</span></td>
+                                                <td>1 day ago</td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-outline-primary">Details</button>
-                                                    <button class="btn btn-sm btn-danger">Cancel</button>
+                                                    <button class="btn btn-sm btn-outline-secondary">Remind</button>
                                                 </td>
                                             </tr>
-                                            <tr>
-                                                <td>#HN-2023-044</td>
+
+                                            <!-- Accepted/Upcoming -->
+                                            <tr data-status="accepted">
+                                                <td>#REQ-1019</td>
+                                                <td>Robert Brown</td>
                                                 <td>Physical Therapy</td>
-                                                <td>David Wilson</td>
-                                                <td>Today, 4:00 PM</td>
-                                                <td><span class="badge bg-success">Confirmed</span></td>
+                                                <td>Mon, Nov 20, 9:00 AM</td>
+                                                <td><span class="badge bg-primary">Confirmed</span></td>
+                                                <td>3 days ago</td>
                                                 <td>
                                                     <button class="btn btn-sm btn-outline-primary">Details</button>
-                                                    <button class="btn btn-sm btn-danger">Cancel</button>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Completed -->
+                                            <tr data-status="completed">
+                                                <td>#REQ-1015</td>
+                                                <td>Sarah Wilson</td>
+                                                <td>Elderly Care</td>
+                                                <td>Nov 10, 2023, 10:00 AM</td>
+                                                <td><span class="badge bg-success">Completed</span></td>
+                                                <td>Nov 10, 2023</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-success">View Feedback</button>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Cancelled/Declined -->
+                                            <tr data-status="cancelled">
+                                                <td>#REQ-1012</td>
+                                                <td>David Lee</td>
+                                                <td>Wound Care</td>
+                                                <td>Nov 5, 2023, 2:00 PM</td>
+                                                <td><span class="badge bg-secondary">Cancelled by Patient</span></td>
+                                                <td>Nov 4, 2023</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-secondary">Details</button>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Expired -->
+                                            <tr data-status="expired">
+                                                <td>#REQ-1008</td>
+                                                <td>Emma Davis</td>
+                                                <td>Medication Admin</td>
+                                                <td>Oct 28, 2023, 9:00 AM</td>
+                                                <td><span class="badge bg-dark">Expired</span></td>
+                                                <td>Oct 27, 2023</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-dark">Recreate</button>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -2028,37 +2264,6 @@
                 }
             });
 
-            // View request details
-            document.querySelectorAll('.view-request-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const row = this.closest('tr');
-                    const requestData = {
-                        id: row.cells[0].textContent,
-                        serviceType: row.cells[1].textContent,
-                        patient: row.cells[2].textContent,
-                        dateTime: row.cells[3].textContent,
-                        distance: row.cells[4].textContent,
-                        urgency: row.cells[5].textContent,
-                        // These would normally come from your data source
-                        patientPhoto: "https://randomuser.me/api/portraits/men/32.jpg",
-                        patientCondition: "Diabetes Type 2, Hypertension",
-                        patientGender: "Male",
-                        patientAge: "58",
-                        patientPhone: "(555) 987-6543",
-                        address: "123 Main St, Apt 4B, New York, NY 10001",
-                        medicalHistory: "Diabetes Type 2, Hypertension, Recent hip surgery",
-                        allergies: "Penicillin, Latex",
-                        medications: "Insulin, Lisinopril, Metformin",
-                        instructions: "Please ring doorbell twice. Dog will bark but is friendly.",
-                        duration: "1.5 hours",
-                        payment: "$85.00"
-                    };
-
-                    populateRequestDetails(requestData);
-                    new bootstrap.Modal(document.getElementById('requestDetailsModal')).show();
-                });
-            });
-
             function populateRequestDetails(data) {
                 // Basic info
                 document.getElementById('requestIdBadge').textContent = data.id;
@@ -2098,21 +2303,6 @@
                     // In a real app, you would update the UI and send data to the server
                 };
             }
-
-            // Accept request button
-            document.querySelectorAll('.accept-request-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const row = this.closest('tr');
-                    const requestId = row.cells[0].textContent;
-                    const patientName = row.cells[2].textContent;
-
-                    if (confirm(`Accept service request ${requestId} from ${patientName}?`)) {
-                        // In a real app, you would send this to your server
-                        alert('Request accepted successfully!');
-                        row.remove();
-                    }
-                });
-            });
 
             // Complete service button (in accepted requests table)
             document.querySelectorAll('.btn-info').forEach(btn => {
@@ -2176,7 +2366,96 @@
                 }
             });
         });
+
+        // private request code
+        // Private Request Handling
+        document.querySelectorAll('.accept-private-request').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const requestItem = this.closest('.list-group-item');
+                const patientName = requestItem.querySelector('h6').textContent.split(' - ')[0];
+
+                if (confirm(`Accept private request from ${patientName}?`)) {
+                    // In real app, send to server
+                    const badge = requestItem.querySelector('.badge');
+                    badge.className = 'badge bg-success';
+                    badge.textContent = 'Accepted';
+
+                    // Remove action buttons
+                    this.closest('div').remove();
+
+                    // Update sidebar badge count
+                    updatePrivateRequestsBadge(-1);
+                }
+            });
+        });
+
+        document.querySelectorAll('.decline-private-request').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const requestItem = this.closest('.list-group-item');
+                const patientName = requestItem.querySelector('h6').textContent.split(' - ')[0];
+
+                if (confirm(`Decline private request from ${patientName}?`)) {
+                    // In real app, send to server
+                    requestItem.remove();
+
+                    // Update sidebar badge count
+                    updatePrivateRequestsBadge(-1);
+                }
+            });
+        });
+
+        function updatePrivateRequestsBadge(change) {
+            const badge = document.querySelector('[href="#private-requests"] .badge');
+            if (badge) {
+                const currentCount = parseInt(badge.textContent) || 0;
+                const newCount = currentCount + change;
+
+                if (newCount > 0) {
+                    badge.textContent = newCount;
+                } else {
+                    badge.remove();
+                }
+            }
+        }
+
+        // requests status code 
+        // Status Filter Functionality
+        document.querySelectorAll('[data-status]').forEach(filter => {
+            filter.addEventListener('click', function(e) {
+                e.preventDefault();
+                const status = this.getAttribute('data-status');
+
+                // Update active state
+                document.querySelectorAll('[data-status]').forEach(item => {
+                    item.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                // Filter table rows
+                const rows = document.querySelectorAll('#statusTable tbody tr');
+                rows.forEach(row => {
+                    if (status === 'all') {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = row.getAttribute('data-status') === status ? '' : 'none';
+                    }
+                });
+            });
+        });
+
+        // Status Badge Colors
+        const statusColors = {
+            'pending': 'bg-warning',
+            'patient-pending': 'bg-info',
+            'accepted': 'bg-primary',
+            'completed': 'bg-success',
+            'cancelled': 'bg-secondary',
+            'expired': 'bg-dark'
+        };
     </script>
 </body>
 
 </html>
+
+
+<!-- end of page -->

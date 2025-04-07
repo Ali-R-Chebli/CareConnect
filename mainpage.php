@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,52 +24,54 @@
             --teal: #20c997;
             --indigo: #6610f2;
         }
-        
+
         body {
             font-family: 'Poppins', sans-serif;
             color: #333;
             overflow-x: hidden;
         }
-        
+
         .hero-section {
             background: linear-gradient(135deg, rgba(13, 110, 253, 0.9) 0%, rgba(32, 201, 151, 0.9) 100%),
-                        url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
+                url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
             background-size: cover;
             background-position: center;
             color: white;
             padding: 100px 0;
             position: relative;
 
-            min-height: 100vh; 
+            min-height: 100vh;
             height: 100vh;
             padding: 0 !important;
-            margin: 0 !important; 
+            margin: 0 !important;
         }
 
-    .hero-section .container {
-    height: 100%;
-    display: flex;
-    align-items: center; /* Vertical center */
-    justify-content: center; /* Horizontal center */
-}
-        
+        .hero-section .container {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            /* Vertical center */
+            justify-content: center;
+            /* Horizontal center */
+        }
+
         .navbar {
             transition: all 0.3s;
         }
-        
+
         .navbar.scrolled {
             background-color: white !important;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .navbar.scrolled .nav-link {
             color: var(--dark) !important;
         }
-        
+
         .navbar.scrolled .navbar-brand {
             color: var(--primary) !important;
         }
-        
+
         .feature-icon {
             width: 70px;
             height: 70px;
@@ -79,7 +82,7 @@
             margin: 0 auto 20px;
             font-size: 28px;
         }
-        
+
         .service-card {
             transition: all 0.3s;
             border: none;
@@ -87,61 +90,61 @@
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
-        
+
         .service-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
         }
-        
+
         .testimonial-card {
             border: none;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
             transition: all 0.3s;
         }
-        
+
         .testimonial-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
-        
+
         .bg-teal {
             background-color: var(--teal) !important;
         }
-        
+
         .btn-teal {
             background-color: var(--teal);
             color: white;
         }
-        
+
         .btn-teal:hover {
             background-color: #1aa179;
             color: white;
         }
-        
+
         .login-modal .modal-dialog {
             max-width: 400px;
         }
-        
+
         .login-tabs .nav-link {
             color: var(--dark);
             font-weight: 500;
             border: none;
             padding: 12px 20px;
         }
-        
+
         .login-tabs .nav-link.active {
             color: var(--primary);
             background-color: transparent;
             border-bottom: 3px solid var(--primary);
         }
-        
+
         .how-it-works-step {
             position: relative;
             padding-left: 80px;
             margin-bottom: 40px;
         }
-        
+
         .how-it-works-step-number {
             position: absolute;
             left: 0;
@@ -157,27 +160,27 @@
             font-size: 24px;
             font-weight: bold;
         }
-        
+
         footer {
             background-color: #2c3e50;
             color: white;
         }
-        
+
         .footer-links a {
             color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             transition: color 0.3s;
         }
-        
-        footer .contact-us li ,
-        footer .footer-paragraph { 
+
+        footer .contact-us li,
+        footer .footer-paragraph {
             color: rgba(255, 255, 255, 0.7);
         }
-        
+
         .footer-links a:hover {
             color: white;
         }
-        
+
         .social-icon {
             width: 40px;
             height: 40px;
@@ -188,13 +191,14 @@
             justify-content: center;
             transition: all 0.3s;
         }
-        
+
         .social-icon:hover {
             background-color: var(--primary);
             transform: translateY(-3px);
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
@@ -295,7 +299,7 @@
                     <p class="lead text-muted">Comprehensive home nursing services to support your health and recovery.</p>
                 </div>
             </div>
-            
+
             <div class="row g-4">
                 <div class="col-md-6 col-lg-4">
                     <div class="service-card card h-100">
@@ -314,7 +318,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-lg-4">
                     <div class="service-card card h-100">
                         <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" class="card-img-top" alt="Medication Management">
@@ -332,7 +336,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-lg-4">
                     <div class="service-card card h-100">
                         <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" class="card-img-top" alt="Elderly Care">
@@ -351,7 +355,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="text-center mt-5">
                 <a href="#" class="btn btn-primary px-4">View All Services</a>
             </div>
@@ -367,7 +371,7 @@
                     <p class="lead text-muted">Getting quality home nursing care has never been easier.</p>
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-lg-10 mx-auto">
                     <div class="how-it-works-step">
@@ -377,7 +381,7 @@
                             <p class="text-muted">Register as a patient and complete your profile with health information and preferences. Our simple onboarding process takes just a few minutes.</p>
                         </div>
                     </div>
-                    
+
                     <div class="how-it-works-step">
                         <div class="how-it-works-step-number">2</div>
                         <div>
@@ -385,7 +389,7 @@
                             <p class="text-muted">Select the type of care you need, choose your preferred date and time, and provide any special instructions for our nurses.</p>
                         </div>
                     </div>
-                    
+
                     <div class="how-it-works-step">
                         <div class="how-it-works-step-number">3</div>
                         <div>
@@ -393,7 +397,7 @@
                             <p class="text-muted">Our system matches you with the most qualified available nurse based on your needs, location, and preferences.</p>
                         </div>
                     </div>
-                    
+
                     <div class="how-it-works-step">
                         <div class="how-it-works-step-number">4</div>
                         <div>
@@ -401,7 +405,7 @@
                             <p class="text-muted">Your nurse arrives at your home at the scheduled time, provides professional care, and documents the visit in your secure health record.</p>
                         </div>
                     </div>
-                    
+
                     <div class="how-it-works-step">
                         <div class="how-it-works-step-number">5</div>
                         <div>
@@ -464,7 +468,7 @@
                     <p class="lead text-muted">Hear from people who have experienced our home nursing services.</p>
                 </div>
             </div>
-            
+
             <div class="row g-4">
                 <div class="col-md-6 col-lg-4">
                     <div class="testimonial-card card h-100">
@@ -489,7 +493,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-lg-4">
                     <div class="testimonial-card card h-100">
                         <div class="card-body">
@@ -513,7 +517,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-lg-4">
                     <div class="testimonial-card card h-100">
                         <div class="card-body">
@@ -574,7 +578,7 @@
                         <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-2 col-md-4">
                     <h4 class="h5 text-white mb-4">Quick Links</h4>
                     <ul class="list-unstyled footer-links">
@@ -585,7 +589,7 @@
                         <li class="mb-2"><a href="#testimonials">Testimonials</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="col-lg-2 col-md-4">
                     <h4 class="h5 text-white mb-4">Services</h4>
                     <ul class="list-unstyled footer-links">
@@ -596,7 +600,7 @@
                         <li class="mb-2"><a href="#">Post-Surgical Care</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="col-lg-4 col-md-4">
                     <h4 class="h5 text-white mb-4">Contact Us</h4>
                     <ul class="list-unstyled text-muted contact-us">
@@ -606,9 +610,9 @@
                     </ul>
                 </div>
             </div>
-            
+
             <hr class="my-4 bg-secondary">
-            
+
             <div class="row">
                 <div class="col-md-6 text-center text-md-start">
                     <p class="small text-muted mb-0">&copy; 2023 CareConnect. All rights reserved.</p>
@@ -640,7 +644,7 @@
                             <button class="nav-link" id="staff-tab" data-bs-toggle="tab" data-bs-target="#staff-login" type="button" role="tab">Staff</button>
                         </li>
                     </ul>
-                    
+
                     <div class="tab-content" id="loginTabsContent">
                         <div class="tab-pane fade show active" id="patient-login" role="tabpanel">
                             <form>
@@ -659,7 +663,7 @@
                                 <button type="submit" class="btn btn-primary w-100">Login as Patient</button>
                             </form>
                         </div>
-                        
+
                         <div class="tab-pane fade" id="nurse-login" role="tabpanel">
                             <form>
                                 <div class="mb-3">
@@ -677,7 +681,7 @@
                                 <button type="submit" class="btn btn-primary w-100">Login as Nurse</button>
                             </form>
                         </div>
-                        
+
                         <div class="tab-pane fade" id="staff-login" role="tabpanel">
                             <form>
                                 <div class="mb-3">
@@ -696,7 +700,7 @@
                             </form>
                         </div>
                     </div>
-                    
+
                     <div class="text-center mt-3">
                         <a href="#" class="text-decoration-none">Forgot password?</a>
                     </div>
@@ -722,8 +726,9 @@
                             <button class="nav-link" id="nurse-reg-tab" data-bs-toggle="tab" data-bs-target="#nurse-reg" type="button" role="tab">Nurse</button>
                         </li>
                     </ul>
-                    
+
                     <div class="tab-content" id="registerTabsContent">
+                        <!-- Patient Registration Form (unchanged) -->
                         <div class="tab-pane fade show active" id="patient-reg" role="tabpanel">
                             <form>
                                 <div class="row mb-3">
@@ -755,9 +760,12 @@
                                 <button type="submit" class="btn btn-primary w-100">Register as Patient</button>
                             </form>
                         </div>
-                        
+
+                        <!-- Updated Nurse Registration Form -->
                         <div class="tab-pane fade" id="nurse-reg" role="tabpanel">
-                            <form>
+                            <form id="nurseApplicationForm" enctype="multipart/form-data">
+                                <!-- Basic Information Section -->
+                                <h6 class="mb-3">Basic Information</h6>
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="nurseFirstName" class="form-label">First Name</label>
@@ -780,19 +788,68 @@
                                     <label for="nurseConfirmPassword" class="form-label">Confirm Password</label>
                                     <input type="password" class="form-control" id="nurseConfirmPassword" required>
                                 </div>
+
+                                <!-- Nurse Application Specific Fields -->
+                                <h6 class="mb-3 mt-4">Professional Information</h6>
                                 <div class="mb-3">
-                                    <label for="nurseLicense" class="form-label">License Number</label>
-                                    <input type="text" class="form-control" id="nurseLicense" required>
+                                    <label for="nurseGender" class="form-label">Gender</label>
+                                    <select class="form-select" id="nurseGender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="nursePicture" class="form-label">Profile Picture</label>
+                                    <input type="file" class="form-control" id="nursePicture" accept="image/*" required>
+                                    <div class="form-text">Upload a professional profile photo</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="nurseCV" class="form-label">CV/Resume (URL or File)</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="nurseCV" placeholder="Or upload file below">
+                                        <span class="input-group-text">or</span>
+                                        <input type="file" class="form-control" id="nurseCVFile" accept=".pdf,.doc,.docx">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="nurseLanguages" class="form-label">Languages Spoken</label>
+                                    <input type="text" class="form-control" id="nurseLanguages" required>
+                                    <div class="form-text">Separate languages with commas (e.g., English, French, Arabic)</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="syndicateNumber" class="form-label">Syndicate/Nursing License Number</label>
+                                    <input type="text" class="form-control" id="syndicateNumber" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="specialization" class="form-label">Specialization</label>
+                                    <select class="form-select" id="specialization" required>
+                                        <option value="">Select Specialization</option>
+                                        <option value="General Nursing">General Nursing</option>
+                                        <option value="Pediatric Nursing">Pediatric Nursing</option>
+                                        <option value="Geriatric Nursing">Geriatric Nursing</option>
+                                        <option value="Critical Care Nursing">Critical Care Nursing</option>
+                                        <option value="Oncology Nursing">Oncology Nursing</option>
+                                        <option value="Other">Other (specify in notes)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="nurseBio" class="form-label">Professional Bio/Notes</label>
+                                    <textarea class="form-control" id="nurseBio" rows="3"></textarea>
+                                    <div class="form-text">Tell us about your experience and qualifications</div>
+                                </div>
+
+                                <!-- Terms and Submission -->
                                 <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="nurseAgreeTerms">
+                                    <input type="checkbox" class="form-check-input" id="nurseAgreeTerms" required>
                                     <label class="form-check-label" for="nurseAgreeTerms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100">Apply as Nurse</button>
                             </form>
                         </div>
                     </div>
-                    
+
                     <div class="text-center mt-3">
                         <p class="mb-0">Already have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Login</a></p>
                     </div>
@@ -814,27 +871,27 @@
                 navbar.classList.remove('scrolled');
             }
         });
-        
+
         // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-        
+
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
+            anchor.addEventListener('click', function(e) {
                 e.preventDefault();
-                
+
                 const targetId = this.getAttribute('href');
                 const targetElement = document.querySelector(targetId);
-                
+
                 if (targetElement) {
                     window.scrollTo({
                         top: targetElement.offsetTop - 70,
                         behavior: 'smooth'
                     });
-                    
+
                     // Close mobile menu if open
                     const navbarCollapse = document.querySelector('.navbar-collapse');
                     if (navbarCollapse.classList.contains('show')) {
@@ -843,7 +900,7 @@
                 }
             });
         });
-        
+
         // Form validation for registration
         document.querySelectorAll('#registerModal form').forEach(form => {
             form.addEventListener('submit', function(e) {
@@ -853,7 +910,7 @@
                 bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
             });
         });
-        
+
         // Form validation for login
         document.querySelectorAll('#loginModal form').forEach(form => {
             form.addEventListener('submit', function(e) {
@@ -863,6 +920,40 @@
                 bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
             });
         });
+
+
+        document.getElementById('nurseApplicationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Create FormData object to handle file uploads
+            const formData = new FormData(this);
+
+            // Add any additional data you need
+            formData.append('action', 'register_nurse');
+
+            // Send the data via AJAX
+            fetch('your-backend-endpoint.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Application submitted successfully!');
+                        $('#registerModal').modal('hide');
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+        });
+
+
+        
     </script>
 </body>
+
 </html>

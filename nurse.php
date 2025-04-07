@@ -471,7 +471,7 @@
                     </div>
 
                     <!-- public requests -->
-                    <div class="tab-pane fade" id="public-requests">
+                    <div class="tab-pane fade " id="public-requests">
                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                             <h2 class="h4 fw-bold">Public Service Requests</h2>
                             <div class="btn-toolbar mb-2 mb-md-0">
@@ -487,7 +487,7 @@
                             <div class="card-header py-3">
                                 <h6 class="m-0 fw-bold text-primary">Available Public Requests</h6>
                             </div>
-                            <div class="card-body p-0"> <!-- Changed to p-0 to remove padding -->
+                            <div class="card-body p-0 "> <!-- Changed to p-0 to remove padding -->
                                 <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;"> <!-- Added scrollable container -->
                                     <!-- Public Request Item 1 -->
                                     <div class="list-group-item">

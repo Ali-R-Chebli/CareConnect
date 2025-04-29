@@ -1,7 +1,7 @@
 <?php
 // Start session and include database connection
 session_start();
-$_SESSION['nurse_id'] = 8; // Example: manually set nurse ID
+$_SESSION['nurse_id'] = 9; // Example: manually set nurse ID
 $_SESSION['user_type'] = 'nurse';
 $_SESSION['logged_in'] = true;
 
@@ -27,7 +27,7 @@ function getFormattedAddress($address_id, $conn)
     }
     return "Address not found";
 }
-
+    
 
 function getNurseRequests($nurse_id, $status, $conn)
 {

@@ -432,7 +432,6 @@ if ($weekly_row = $weekly_result->fetch_assoc()) {
                     <input type="hidden" name="schedule_id" value="<?= $schedule['ScheduleID'] ?>">
                     <button type="submit" name="delete_schedule" class="btn btn-sm btn-outline-danger">
                         <i class="fas fa-trash"></i>
-                        <?= $schedule['ScheduleID'] ?>
                     </button>
                 </form>
             </td>

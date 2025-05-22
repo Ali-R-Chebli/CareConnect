@@ -272,11 +272,11 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('[href="#messages"]').click();
         };
 
-        document.getElementById('acceptRequestBtn').onclick = function() {
-            alert('Request accepted successfully!');
-            bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal')).hide();
-            // In a real app, you would update the UI and send data to the server
-        };
+        // document.getElementById('acceptRequestBtn').onclick = function() {
+        //     alert('Request accepted successfully!');
+        //     bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal')).hide();
+        //     // In a real app, you would update the UI and send data to the server
+        // };
     }
 
     // Complete service button (in accepted requests table)
@@ -321,48 +321,48 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Public Request Acceptance
-document.querySelectorAll('.accept-public-request').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const requestItem = this.closest('.list-group-item');
-        const requestTitle = requestItem.querySelector('h6').textContent;
+// document.querySelectorAll('.accept-public-request').forEach(btn => {
+//     btn.addEventListener('click', function() {
+//         const requestItem = this.closest('.list-group-item');
+//         const requestTitle = requestItem.querySelector('h6').textContent;
 
-        if (confirm(`Accept this public request: "${requestTitle}"?`)) {
-            // In a real app, you would send this to your server
-            alert('Request accepted! You will be connected with the patient shortly.');
-            requestItem.remove();
+//         if (confirm(`Accept this public request: "${requestTitle}"?`)) {
+//             // In a real app, you would send this to your server
+//             alert('Request accepted! You will be connected with the patient shortly.');
+//             requestItem.remove();
 
-            // Update badge count
-            const badge = document.querySelector('[href="#public-requests"] .badge');
-            if (badge) {
-                const currentCount = parseInt(badge.textContent);
-                badge.textContent = currentCount > 1 ? currentCount - 1 : '';
-                if (badge.textContent === '') badge.remove();
-            }
-        }
-    });
-});
+//             // Update badge count
+//             const badge = document.querySelector('[href="#public-requests"] .badge');
+//             if (badge) {
+//                 const currentCount = parseInt(badge.textContent);
+//                 badge.textContent = currentCount > 1 ? currentCount - 1 : '';
+//                 if (badge.textContent === '') badge.remove();
+//             }
+//         }
+//     });
+// });
 
 // private request code
 // Private Request Handling
-document.querySelectorAll('.accept-private-request').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const requestItem = this.closest('.list-group-item');
-        const patientName = requestItem.querySelector('h6').textContent.split(' - ')[0];
+// document.querySelectorAll('.accept-private-request').forEach(btn => {
+//     btn.addEventListener('click', function() {
+//         const requestItem = this.closest('.list-group-item');
+//         const patientName = requestItem.querySelector('h6').textContent.split(' - ')[0];
 
-        if (confirm(`Accept private request from ${patientName}?`)) {
-            // In real app, send to server
-            const badge = requestItem.querySelector('.badge');
-            badge.className = 'badge bg-success';
-            badge.textContent = 'Accepted';
+//         if (confirm(`Accept private request from ${patientName}?`)) {
+//             // In real app, send to server
+//             const badge = requestItem.querySelector('.badge');
+//             badge.className = 'badge bg-success';
+//             badge.textContent = 'Accepted';
 
-            // Remove action buttons
-            this.closest('div').remove();
+//             // Remove action buttons
+//             this.closest('div').remove();
 
-            // Update sidebar badge count
-            updatePrivateRequestsBadge(-1);
-        }
-    });
-});
+//             // Update sidebar badge count
+//             updatePrivateRequestsBadge(-1);
+//         }
+//     });
+// });
 
 document.querySelectorAll('.decline-private-request').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -395,28 +395,28 @@ function updatePrivateRequestsBadge(change) {
 
 // requests status code 
 // Status Filter Functionality
-document.querySelectorAll('[data-status]').forEach(filter => {
-    filter.addEventListener('click', function(e) {
-        e.preventDefault();
-        const status = this.getAttribute('data-status');
+// document.querySelectorAll('[data-status]').forEach(filter => {
+//     filter.addEventListener('click', function(e) {
+//         e.preventDefault();
+//         const status = this.getAttribute('data-status');
 
-        // Update active state
-        document.querySelectorAll('[data-status]').forEach(item => {
-            item.classList.remove('active');
-        });
-        this.classList.add('active');
+//         // Update active state
+//         document.querySelectorAll('[data-status]').forEach(item => {
+//             item.classList.remove('active');
+//         });
+//         this.classList.add('active');
 
-        // Filter table rows
-        const rows = document.querySelectorAll('#statusTable tbody tr');
-        rows.forEach(row => {
-            if (status === 'all') {
-                row.style.display = '';
-            } else {
-                row.style.display = row.getAttribute('data-status') === status ? '' : 'none';
-            }
-        });
-    });
-});
+//         // Filter table rows
+//         const rows = document.querySelectorAll('#statusTable tbody tr');
+//         rows.forEach(row => {
+//             if (status === 'all') {
+//                 row.style.display = '';
+//             } else {
+//                 row.style.display = row.getAttribute('data-status') === status ? '' : 'none';
+//             }
+//         });
+//     });
+// });
 
 // Status Badge Colors
 const statusColors = {
@@ -427,3 +427,19 @@ const statusColors = {
     'cancelled': 'bg-secondary',
     'expired': 'bg-dark'
 };
+
+
+
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      const openModal = document.querySelector('.modal.show');
+      if (openModal) {
+        const modalInstance = bootstrap.Modal.getInstance(openModal);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+      }
+    }
+  });
+  

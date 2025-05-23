@@ -11,6 +11,60 @@ require_once 'db_connection.php';
 
 
 
+function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
+{
+    // Main application-based query
+    $query = "SELECT r.Date, r.Time, r.Duration 
+              FROM request r
+              JOIN request_applications ra ON r.RequestID = ra.RequestID
+              WHERE ra.NurseID = ? 
+                AND ra.ApplicationStatus = 'inprocess' 
+                AND r.RequestStatus = 'inprocess'";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $nurseId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $requests = [];
+    while ($row = $result->fetch_assoc()) {
+        $requests[] = $row;
+    }
+
+    // Private requests directly assigned to the nurse
+    $private_query = "SELECT r.Date, r.Time, r.Duration
+                      FROM request r
+                      WHERE r.NurseID = ? AND r.RequestStatus = 'inprocess'";
+
+    $stmt2 = $conn->prepare($private_query);
+    $stmt2->bind_param("i", $nurseId);
+    $stmt2->execute();
+    $private_result = $stmt2->get_result();
+
+    while ($row = $private_result->fetch_assoc()) {
+        $requests[] = $row;
+    }
+
+    // Convert new request time to timestamps
+    $newStart = strtotime("$newDate $newTime");
+    $newEnd = $newStart + ($newDuration * 3600); // Duration in seconds
+
+    // Check for overlap with existing requests
+    foreach ($requests as $existing) {
+        $existingStart = strtotime($existing['Date'] . ' ' . $existing['Time']);
+        $existingEnd = $existingStart + ($existing['Duration'] * 3600);
+
+        if ($newStart < $existingEnd && $newEnd > $existingStart) {
+            return true; // Conflict exists
+        }
+    }
+
+    return false; // No conflict
+}
+
+
+
+
 // Function to get formatted address
 function getFormattedAddress($address_id, $conn)
 {
@@ -35,6 +89,8 @@ function getNurseRequests($nurse_id, $status, $conn)
 
     // Case 1: InProcess Requests
     if ($status === 'inprocess') {
+
+
         // Private requests (assigned directly to the nurse)
         $private_query = "SELECT r.* FROM request r
                           WHERE r.NurseID = ? AND r.RequestStatus = 'inprocess'";
@@ -46,14 +102,7 @@ function getNurseRequests($nurse_id, $status, $conn)
             $requests[] = $row;
         }
 
-        // Public requests (nurse applied and now inprocess)
-        // $public_query = "SELECT r.* FROM request r
-        //                  JOIN request_applications ra ON r.RequestID = ra.RequestID
-        //                  WHERE ra.NurseID = ? AND ra.ApplicationStatus = 'inprocess' 
-        //                  AND r.RequestStatus = 'inprocess'";
-
-        $public_query = "
-    SELECT 
+        $public_query = "SELECT 
         r.*, 
         a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
         GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded
@@ -63,10 +112,9 @@ function getNurseRequests($nurse_id, $status, $conn)
     LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
     LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
     WHERE ra.NurseID = ? 
-      AND ra.ApplicationStatus = 'inprocess' 
+      AND ra.ApplicationStatus = 'accepted' 
       AND r.RequestStatus = 'inprocess'
-    GROUP BY r.RequestID
-";
+    GROUP BY r.RequestID "; 
 
 
 
@@ -77,6 +125,8 @@ function getNurseRequests($nurse_id, $status, $conn)
         while ($row = $public_results->fetch_assoc()) {
             $requests[] = $row;
         }
+
+
     }
     // Case 2: Pending Requests
     elseif ($status === 'pending') {
@@ -140,21 +190,39 @@ function getNurseRequests($nurse_id, $status, $conn)
         //                  WHERE ra.NurseID = ? AND ra.ApplicationStatus = 'accepted' 
         //                  AND r.RequestStatus = 'confirmed'";
 
-        $public_query = "
+//         $public_query = "
+//     SELECT 
+//         r.*, 
+//         a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
+//         GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded
+//     FROM request r
+//     JOIN request_applications ra ON r.RequestID = ra.RequestID
+//     LEFT JOIN address a ON r.AddressID = a.AddressID
+//     LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
+//     LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
+//     WHERE ra.NurseID = ? 
+//       AND ra.ApplicationStatus = 'accepted' 
+//       AND r.RequestStatus = 'confirmed'
+//     GROUP BY r.RequestID
+// ";
+
+$public_query = "
     SELECT 
         r.*, 
         a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
         GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded
     FROM request r
-    JOIN request_applications ra ON r.RequestID = ra.RequestID
+    JOIN request_applications ra 
+        ON r.RequestID = ra.RequestID 
+        AND ra.NurseID = ? 
+        AND ra.ApplicationStatus = 'accepted'
     LEFT JOIN address a ON r.AddressID = a.AddressID
     LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
     LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
-    WHERE ra.NurseID = ? 
-      AND ra.ApplicationStatus = 'accepted' 
-      AND r.RequestStatus = 'confirmed'
+    WHERE r.RequestStatus = 'confirmed'
     GROUP BY r.RequestID
 ";
+
 
 
         $stmt = $conn->prepare($public_query);
@@ -193,18 +261,21 @@ $completed_count = count($completed_requests);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="nurse.css">
     <style>
-    .star-rating {
-        font-size: 24px;
-        display: inline-block;
-    }
-    .star {
-        color: #ddd;
-        cursor: pointer;
-    }
-    .star.filled {
-        color: #ffc107; /* Bootstrap's warning color for yellow stars */
-    }
-</style>
+        .star-rating {
+            font-size: 24px;
+            display: inline-block;
+        }
+
+        .star {
+            color: #ddd;
+            cursor: pointer;
+        }
+
+        .star.filled {
+            color: #ffc107;
+            /* Bootstrap's warning color for yellow stars */
+        }
+    </style>
 </head>
 
 <body>
@@ -432,6 +503,47 @@ $completed_count = count($completed_requests);
                                             <td>
                                                 <?php if ($request['ispublic'] == 0): ?>
                                                     <!-- heree -->
+
+
+                                                    <?php
+
+
+
+                                                        $hasConflict = hasTimeConflict($conn, $_SESSION['user_id'], $request['Date'], $request['Time'], $request['Duration']);
+
+
+                                                if ($hasConflict) {
+                                                            // Show disabled button that triggers conflict modal
+                                                            echo '<button type="button" class="btn btn-sm btn-danger m-0 " data-bs-toggle="modal" data-bs-target="#timeConflictModal' . $request['RequestID'] . '">
+            Accept
+          </button>';
+
+                                                            // Conflict modal
+                                                            echo '
+    <div class="modal fade" id="timeConflictModal' . $request['RequestID'] . '" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Schedule Conflict</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>You cannot apply for this request because it conflicts with your current schedule:</p>
+                    <ul>
+                        <li>Date: ' . date("F j, Y", strtotime($request['Date'])) . '</li>
+                        <li>Time: ' . date("g:i A", strtotime($request['Time'])) . '</li>
+                        <li>Duration: ' . $request['Duration'] . ' hours</li>
+                    </ul>
+                    <p>Please complete your current assignment before taking new requests at this time.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>';
+                                                        } else {
+                                               ?>
                                                     <form action="accept_private_request.php" method="post" style="display: inline;">
                                                         <input type="hidden" name="request_id" value="<?php echo $request['RequestID']; ?>">
                                                         <input type="hidden" name="source_page" value="<?php echo basename($_SERVER['PHP_SELF']); ?>">
@@ -439,6 +551,8 @@ $completed_count = count($completed_requests);
                                                             Accept
                                                         </button>
                                                     </form>
+
+                                                    <?php   }  ?>
 
                                                     <button
                                                         class="btn btn-sm btn-outline-danger"

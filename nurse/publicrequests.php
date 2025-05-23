@@ -4,8 +4,93 @@ $_SESSION['user_id'] = 1; // Example: manually set nurse ID
 $_SESSION['user_type'] = 'nurse';
 $_SESSION['logged_in'] = true;
 
-?>
+// Function to check if nurse is available for the request
+function isNurseAvailable($conn, $nurseId, $requestDate)
+{
+    // Get the day of week for the request date (0=Sunday, 6=Saturday)
+    $dayOfWeek = date('w', strtotime($requestDate));
 
+    // Map numeric day to database column names
+    $daysMap = [
+        0 => 'Sunday',
+        1 => 'Monday',
+        2 => 'Tuesday',
+        3 => 'Wednesday',
+        4 => 'Thursday',
+        5 => 'Friday',
+        6 => 'Saturday'
+    ];
+    $dayColumn = $daysMap[$dayOfWeek];
+
+    // Check weekly availability
+    $weeklyQuery = "SELECT $dayColumn FROM weekly_availability WHERE NurseID = ?";
+    $stmt = $conn->prepare($weeklyQuery);
+    $stmt->bind_param("i", $nurseId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return ($row[$dayColumn] == 'yes');
+    }
+
+    // If no availability record exists, assume available
+    return true;
+}
+
+
+function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
+{
+    // Main application-based query
+    $query = "SELECT r.Date, r.Time, r.Duration 
+              FROM request r
+              JOIN request_applications ra ON r.RequestID = ra.RequestID
+              WHERE ra.NurseID = ? 
+                AND ra.ApplicationStatus = 'inprocess' 
+                AND r.RequestStatus = 'inprocess'";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $nurseId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $requests = [];
+    while ($row = $result->fetch_assoc()) {
+        $requests[] = $row;
+    }
+
+    // Private requests directly assigned to the nurse
+    $private_query = "SELECT r.Date, r.Time, r.Duration
+                      FROM request r
+                      WHERE r.NurseID = ? AND r.RequestStatus = 'inprocess'";
+
+    $stmt2 = $conn->prepare($private_query);
+    $stmt2->bind_param("i", $nurseId);
+    $stmt2->execute();
+    $private_result = $stmt2->get_result();
+
+    while ($row = $private_result->fetch_assoc()) {
+        $requests[] = $row;
+    }
+
+    // Convert new request time to timestamps
+    $newStart = strtotime("$newDate $newTime");
+    $newEnd = $newStart + ($newDuration * 3600); // Duration in seconds
+
+    // Check for overlap with existing requests
+    foreach ($requests as $existing) {
+        $existingStart = strtotime($existing['Date'] . ' ' . $existing['Time']);
+        $existingEnd = $existingStart + ($existing['Duration'] * 3600);
+
+        if ($newStart < $existingEnd && $newEnd > $existingStart) {
+            return true; // Conflict exists
+        }
+    }
+
+    return false; // No conflict
+}
+
+?>
 
 
 <!DOCTYPE html>
@@ -130,28 +215,96 @@ $_SESSION['logged_in'] = true;
 
                                                     <form action="accept_request.php" method="post" style="display: inline;">
                                                         <input type="hidden" name="request_id" value="<?php echo $request['RequestID']; ?>">
-                                                        <button
-                                                            type="submit"
-                                                            <?php
 
-                                                            // Prepare and execute the query
-                                                            $sql1 = "SELECT * FROM `request_applications` WHERE NurseID = ? AND RequestID = ?";
-                                                            $stmt1 = $conn->prepare($sql1);
-                                                            $stmt1->bind_param("ii", $_SESSION['user_id'], $request["RequestID"]);
-                                                            $stmt1->execute();
-                                                            $result1 = $stmt1->get_result();
 
-                                                            // Check if any rows were returned
-                                                            if ($result1->num_rows > 0) {
-                                                                echo 'class="btn btn-secondary" disabled';
+                                                        <?php
+                                                        // Check if nurse is available for this request's day
+                                                        $isAvailable = isNurseAvailable($conn, $_SESSION['user_id'], $request['Date']);
+
+                                                        // Check if nurse has already applied
+                                                        $sql1 = "SELECT * FROM `request_applications` WHERE NurseID = ? AND RequestID = ?";
+                                                        $stmt1 = $conn->prepare($sql1);
+                                                        $stmt1->bind_param("ii", $_SESSION['user_id'], $request["RequestID"]);
+                                                        $stmt1->execute();
+                                                        $result1 = $stmt1->get_result();
+                                                        $hasApplied = ($result1->num_rows > 0);
+
+                                                        // Check for time conflicts with in-process requests
+                                                        $hasConflict = hasTimeConflict($conn, $_SESSION['user_id'], $request['Date'], $request['Time'], $request['Duration']);
+
+                                                        if ($hasApplied) {
+                                                            echo '<button class="btn btn-secondary" disabled>Already Applied</button>';
+                                                        } elseif ($hasConflict) {
+                                                            // Show disabled button that triggers conflict modal
+                                                            echo '<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#timeConflictModal' . $request['RequestID'] . '">
+            Accept Request
+          </button>';
+
+                                                            // Conflict modal
+                                                            echo '
+    <div class="modal fade" id="timeConflictModal' . $request['RequestID'] . '" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Schedule Conflict</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>You cannot apply for this request because it conflicts with your current schedule:</p>
+                    <ul>
+                        <li>Date: ' . date("F j, Y", strtotime($request['Date'])) . '</li>
+                        <li>Time: ' . date("g:i A", strtotime($request['Time'])) . '</li>
+                        <li>Duration: ' . $request['Duration'] . ' hours</li>
+                    </ul>
+                    <p>Please complete your current assignment before taking new requests at this time.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>';
+                                                        } else {
+                                                            if (!$isAvailable) {
+                                                                // If available, show regular accept button
+                                                                echo '<form action="accept_request.php" method="post" style="display: inline;">
+                <input type="hidden" name="request_id" value="' . $request['RequestID'] . '">
+                <button type="submit" class="btn btn-primary">Accept Request</button>
+              </form>';
                                                             } else {
-                                                                echo 'class="btn btn-primary" ';
+                                                                // If not available, show button that triggers confirmation modal
+                                                                $dayName = date('l', strtotime($request['Date']));
+                                                                echo '<button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#confirmConflictModal' . $request['RequestID'] . '">
+                Accept Request
+              </button>';
+
+                                                                // Add the confirmation modal
+                                                                echo '
+        <div class="modal fade" id="confirmConflictModal' . $request['RequestID'] . '" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title">Schedule Conflict</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>This request is scheduled for <strong>' . $dayName . ', ' . date("F j, Y", strtotime($request['Date'])) . '</strong></p>
+                        <p>According to your availability, you are not normally available on ' . $dayName . 's.</p>
+                        <p>Are you sure you want to apply for this request?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form action="accept_request.php" method="post" style="display: inline;">
+                            <input type="hidden" name="request_id" value="' . $request['RequestID'] . '">
+                            <button type="submit" class="btn btn-primary">Yes, Apply Anyway</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>';
                                                             }
-
-
-                                                            ?>>
-                                                            Accept Request
-                                                        </button>
+                                                        }
+                                                        ?>
 
 
 
@@ -186,6 +339,7 @@ $_SESSION['logged_in'] = true;
                                                                     <li><strong>Service Fee Percentage:</strong> <?php echo $request['ServiceFeePercentage']; ?>%</li>
 
                                                                     <li><strong>care needed : </strong> <?php echo $request['CareNeeded']; ?> </li>
+                                                                    <li><?php echo $request['RequestID']; ?></li>
                                                                 </ul>
                                                             </div>
                                                             <div class="col-md-6">

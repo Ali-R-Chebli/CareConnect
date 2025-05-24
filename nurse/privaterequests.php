@@ -87,9 +87,7 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
                 <div class="tab-content">
 
                     <!-- private requests tab -->
-                    <div class="tab-pane fade show active" id="private-requests">
-                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-                            <h2 class="h4 fw-bold">Private Requests</h2>
+                    <!-- <div class="tab-pane fade show active" id="private-requests">
                             <div class="btn-toolbar mb-2 mb-md-0">
                                 <div class="btn-group me-2">
                                     <button class="btn btn-sm btn-outline-secondary">All</button>
@@ -97,7 +95,7 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
                                     <button class="btn btn-sm btn-outline-secondary">Accepted</button>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
 
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
@@ -283,6 +281,7 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
                                                                     <li><strong>Patient Age Type:</strong> <?php echo htmlspecialchars($request['AgeType']); ?></li>
                                                                     <li><strong>Service Fee Percentage:</strong> <?php echo $request['ServiceFeePercentage']; ?>%</li>
                                                                     <li><strong>Care Needed: </strong> <?php echo $request['CareNeeded']; ?></li>
+                                                                    <li><?php echo $request['RequestID']; ?></li>
 
                                                                 </ul>
                                                             </div>

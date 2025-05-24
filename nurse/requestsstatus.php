@@ -133,6 +133,7 @@ function getNurseRequests($nurse_id, $status, $conn)
         // Private requests (assigned directly to the nurse)
         $private_query = "SELECT r.* FROM request r
                           WHERE r.NurseID = ? AND r.RequestStatus = 'pending' ";
+
         $stmt = $conn->prepare($private_query);
         $stmt->bind_param("i", $nurse_id);
         $stmt->execute();
@@ -160,7 +161,6 @@ function getNurseRequests($nurse_id, $status, $conn)
                    AND ra.ApplicationStatus = 'pending' 
                    AND r.RequestStatus = 'pending'
                  GROUP BY r.RequestID";
-
 
 
         $stmt = $conn->prepare($public_query);
@@ -503,8 +503,6 @@ $completed_count = count($completed_requests);
                                             <td>
                                                 <?php if ($request['ispublic'] == 0): ?>
                                                     <!-- heree -->
-
-
                                                     <?php
 
 

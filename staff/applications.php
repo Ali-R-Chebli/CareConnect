@@ -153,7 +153,164 @@ if ($result) {
             background-color: #f5f5f5;
         }
 
+.cert-details-container {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.cert-header {
+    padding: 16px 20px;
+    background: #2c3e50;
+    color: white;
+}
+
+.cert-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.cert-content {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+}
+
+.cert-column {
+    flex: 1;
+}
+
+.detail-group {
+    margin-bottom: 15px;
+}
+
+.detail-group label {
+    display: block;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.detail-value {
+    color: #333;
+    padding: 8px 0;
+    font-size: 0.95rem;
+}
+
+.status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.document-preview {
+    padding: 0 20px 20px;
+}
+
+.document-preview label {
+    display: block;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.image-container {
+    text-align: center;
+    border: 1px solid #eee;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.image-container img {
+    max-width: 100%;
+    max-height: 200px;
+    display: block;
+    margin: 0 auto 10px;
+}
+
+.view-link {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.view-link:hover {
+    text-decoration: underline;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.approve-btn {
+    background: #28a745;
+    color: white;
+}
+
+.approve-btn:hover {
+    background: #218838;
+}
+
+.reject-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.reject-btn:hover {
+    background: #c82333;
+}
+
+.alert {
+    padding: 15px;
+    background: #f8d7da;
+    color: #721c24;
+    border-radius: 4px;
+    margin: 10px;
+}
         /* ... rest of your CSS ... */
+        
+
+        .modal-content {
+            width: 50vw;
+        }
     </style>
 </head>
 
@@ -291,17 +448,17 @@ if ($result) {
 
     <!-- show application modal -->
     <div class="modal" id="viewApplicationModal">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content" style="border-radius: 50%;">
+            <!-- <div class="modal-header">
                 <h3>Application Details</h3>
-                <span class="close" onclick="closeModal('viewApplicationModal')">&times;</span>
-            </div>
-            <div class="modal-body" id="applicationDetails">
+            </div> -->
+            <div class="modal-body" style="padding: 0px;" id="applicationDetails">
                 <!-- Content will be loaded via AJAX -->
+                <!-- <span class="close" onclick="closeModal('viewApplicationModal')">&times;</span> -->
             </div>
-            <div class="modal-footer">
+            <!-- <div class="modal-footer">
                 <button class="btn btn-light" onclick="closeModal('viewApplicationModal')">Close</button>
-            </div>
+            </div> -->
         </div>
     </div>
 

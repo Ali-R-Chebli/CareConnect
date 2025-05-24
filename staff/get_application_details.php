@@ -2,96 +2,112 @@
 require_once 'db_connection.php';
 
 if (isset($_GET['id'])) {
-    $certId = $_GET['id'];
-    
-    $query = "SELECT c.*, u.FullName AS NurseName, u.Email AS NurseEmail
-              FROM certification c
-              JOIN nurse n ON c.NurseID = n.NurseID
-              JOIN user u ON n.UserID = u.UserID
-              WHERE c.CertificationID = ?";
-    
+    $appId = $_GET['id'];
+
+    $query = "SELECT * FROM nurseapplication WHERE NAID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $certId);
+    $stmt->bind_param("i", $appId);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($result && $result->num_rows > 0) {
         $row = $result->fetch_assoc();
+
+        echo "<div class='cert-details-container'>";
         
-        echo "<div class='certification-details'>";
-        
+        // Header
+        echo '<div class="cert-header" style="display: flex; justify-content: space-between;">';
+        echo "<h3>Nurse Application Details</h3>";
+        echo '<span class="close" style="color: white;" onclick="closeModal(\'viewApplicationModal\')">&times;</span>';
+        echo "</div>";
+
+        // Two-column content
+        echo "<div class='cert-content'>";
+
         // Left column
-        echo "<div class='left-column'>";
-        echo "<div class='detail-group'>";
-        echo "<label>Nurse Name:</label>";
-        echo "<p>{$row['NurseName']}</p>";
+        echo "<div class='cert-column'>";
+        echo "<div class='detail-group'><label>Full Name:</label><p class='detail-value'>{$row['FullName']}</p></div>";
+        echo "<div class='detail-group'><label>Email:</label><p class='detail-value'>{$row['Email']}</p></div>";
+        echo "<div class='detail-group'><label>Phone:</label><p class='detail-value'>{$row['PhoneNumber']}</p></div>";
+        echo "<div class='detail-group'><label>Gender:</label><p class='detail-value'>{$row['Gender']}</p></div>";
+        echo "<div class='detail-group'><label>Date of Birth:</label><p class='detail-value'>{$row['DateOfBirth']}</p></div>";
+        echo "<div class='detail-group'><label>Language:</label><p class='detail-value'>{$row['Language']}</p></div>";
         echo "</div>";
-        
-        echo "<div class='detail-group'>";
-        echo "<label>Nurse Email:</label>";
-        echo "<p>{$row['NurseEmail']}</p>";
-        echo "</div>";
-        
-        echo "<div class='detail-group'>";
-        echo "<label>Certification Type:</label>";
-        echo "<p>{$row['Name']}</p>";
-        echo "</div>";
-        
-        echo "<div class='detail-group'>";
-        echo "<label>Status:</label>";
-        $statusClass = strtolower($row['Status']);
-        echo "<p><span class='status status-$statusClass'>{$row['Status']}</span></p>";
-        echo "</div>";
-        echo "</div>";
-        
+
         // Right column
-        echo "<div class='right-column'>";
-        echo "<div class='detail-group'>";
-        echo "<label>Submitted On:</label>";
-        echo "<p>" . date('F j, Y \a\t g:i a', strtotime($row['CreatedAt'])) . "</p>";
-        echo "</div>";
+        echo "<div class='cert-column'>";
+        echo "<div class='detail-group'><label>Specialization:</label><p class='detail-value'>{$row['Specialization']}</p></div>";
+        echo "<div class='detail-group'><label>Syndicate Number:</label><p class='detail-value'>{$row['SyndicateNumber']}</p></div>";
+        echo "<div class='detail-group'><label>Status:</label><p class='detail-value'><span class='status " . strtolower($row['Status']) . "'>{$row['Status']}</span></p></div>";
         
-        if (!empty($row['Comment'])) {
-            echo "<div class='detail-group'>";
-            echo "<label>Comments:</label>";
-            echo "<p>{$row['Comment']}</p>";
+        if (!empty($row['Comments'])) {
+            echo "<div class='detail-group'><label>Comments:</label><p class='detail-value'>{$row['Comments']}</p></div>";
+        }
+
+        if (!empty($row['RejectedReason'])) {
+            echo "<div class='detail-group'><label>Rejected Reason:</label><p class='detail-value'>{$row['RejectedReason']}</p></div>";
+        }
+
+        echo "</div>"; // End right column
+
+        // third column
+        echo "<div class='cert-column'>";
+        // Document (Image)
+        if (!empty($row['Picture'])) {
+            echo "<div class='document-preview'>";
+            echo "<label>Profile Picture:</label>";
+            echo "<div class='image-container'>";
+            echo "<img src='{$row['Picture']}' alt='Profile Picture'>";
+            echo "<a href='{$row['Picture']}' target='_blank' class='view-link'>View Full Size</a>";
+            echo "</div>";
             echo "</div>";
         }
-        
-        if (!empty($row['Image'])) {
+
+        // CV Link
+        if (!empty($row['URL_CV'])) {
             echo "<div class='detail-group'>";
-            echo "<label>Document:</label>";
-            echo "<div style='margin-top: 10px;'>";
-            echo "<img src='{$row['Image']}' alt='Certification Document'>";
-            echo "</div>";
+            echo "<label>CV:</label> <a href='{$row['URL_CV']}' target='_blank'>View CV</a>";
             echo "</div>";
         }
-        echo "</div>";
-        
-        echo "</div>"; // Close certification-details
-        
-        // Show action buttons if pending
+
+
+        echo "</div>"; // End third column
+
+        echo "</div>"; // End main content
+
+
+        // Action Buttons
         if ($row['Status'] === 'Pending') {
             echo "<div class='action-buttons'>";
-            echo "<form method='post' action='certifications.php' onsubmit='return confirmAction(\"approve\")'>";
-            echo "<input type='hidden' name='certification_id' value='{$row['CertificationID']}'>";
+            echo "<form method='post' action='nurse_applications.php' onsubmit='return confirmAction(\"approve\")'>";
+            echo "<input type='hidden' name='naid' value='{$row['NAID']}'>";
             echo "<input type='hidden' name='action' value='approve'>";
-            echo "<button type='submit' class='btn btn-success'>Approve</button>";
+            echo "<button type='submit' class='btn approve-btn'>Approve</button>";
             echo "</form>";
-            
-            echo "<form method='post' action='certifications.php' onsubmit='return confirmAction(\"reject\")'>";
-            echo "<input type='hidden' name='certification_id' value='{$row['CertificationID']}'>";
+
+            echo "<form method='post' action='nurse_applications.php' onsubmit='return confirmAction(\"reject\")'>";
+            echo "<input type='hidden' name='naid' value='{$row['NAID']}'>";
             echo "<input type='hidden' name='action' value='reject'>";
-            echo "<button type='submit' class='btn btn-danger'>Reject</button>";
+            echo "<button type='submit' class='btn reject-btn'>Reject</button>";
             echo "</form>";
             echo "</div>";
         }
+
+        
+        
+            echo '<div style="display: flex; justify-content: flex-end; width: 100%;">
+        <button class="btn btn-light" style="margin: 10px;" onclick="closeModal(\'viewApplicationModal\')">Close</button>
+      </div>';
+
+
+
+        echo "</div>"; // End container
     } else {
-        echo "<div class='alert alert-error'>Certification details not found.</div>";
+        echo "<div class='alert'>Application not found.</div>";
     }
-    
+
     $stmt->close();
 } else {
-    echo "<div class='alert alert-error'>Invalid request.</div>";
+    echo "<div class='alert'>Invalid request.</div>";
 }
 ?>

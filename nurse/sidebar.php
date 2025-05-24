@@ -1,5 +1,5 @@
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block sidebar bg-primary collapse" id="sidebarMenu">
+            <div class="col-md-3 col-lg-2 d-md-block sidebar bg-primary collapse position-fixed"  id="sidebarMenu">
                 <div class="position-sticky pt-3">
                     <div class="text-center mb-4">
                         <h4 class="text-white">Home Nursing</h4>

@@ -194,7 +194,146 @@
     background-color: #5a6268;
 }
 
+/* Certification Modal Redesign */
+.certification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
 
+.certification-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.4rem;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.pending-badge {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.approved-badge {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.rejected-badge {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.certification-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+.details-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.detail-section {
+    background: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.detail-section h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #3498db;
+    font-size: 1.1rem;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 12px;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #555;
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.detail-value {
+    color: #333;
+}
+
+.document-preview {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    background: #f9f9f9;
+}
+
+.document-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    display: block;
+    margin: 0 auto;
+    border-radius: 4px;
+}
+
+.document-actions {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.view-full-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #3498db;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+.view-full-btn:hover {
+    background: #2980b9;
+}
+
+.comments-box {
+    background: #f8f9fa;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 12px;
+    min-height: 80px;
+    white-space: pre-wrap;
+}
+
+.no-data-found, .invalid-request {
+    text-align: center;
+    padding: 30px;
+    color: #6c757d;
+}
+
+.no-data-found i, .invalid-request i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: #dc3545;
+}
+
+.invalid-request i {
+    color: #ffc107;
+}
 
     </style>
 </head>

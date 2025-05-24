@@ -114,23 +114,13 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
             <?php include "sidebar.php" ?>
 
             <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-                <!-- Tab Content -->
-                <div class="tab-content">
-
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 " style="height: 100vh;">
                     <!-- public requests -->
-                    <div class="tab-pane fade show active" id="public-requests">
-                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-                            <h2 class="h4 fw-bold">Public Service Requests</h2>
-
-                        </div>
-
-                        <div class="card shadow mb-4">
-                            <div class="card-header py-3">
+                        <div class="card shadow mb-4 parent" style="height: 100%;">
+                            <div class="card-header py-3 my-element" style="position: fixed; z-index: 9999; box-sizing: border-box;">
                                 <h6 class="m-0 fw-bold text-primary">Available Public Requests</h6>
                             </div>
-                            <div class="card-body p-0">
-                                <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
+                                <div class="list-group list-group-flush" style="max-height: 100%; overflow-y: auto;">
                                     <?php
                                     // Database connection
                                     require_once 'db_connection.php';
@@ -384,10 +374,7 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
                                         </div>
                                     <?php } ?>
                                 </div>
-                            </div>
                         </div>
-                    </div>
-                </div>
             </main>
         </div>
     </div>
@@ -400,7 +387,56 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom JS -->
     <script src="nurse.js"></script>
-    <script></script>
+<script>
+
+
+    const parent = document.querySelector('.parent');
+    const fixedElem = document.querySelector('.my-element');
+
+    function updateFixedElement() {
+        const rect = parent.getBoundingClientRect();
+        fixedElem.style.width = rect.width + 'px';
+        fixedElem.style.left = rect.left + 'px';
+    }
+
+    window.addEventListener('resize', updateFixedElement);
+    window.addEventListener('scroll', updateFixedElement);
+
+    updateFixedElement();
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    function adjustListGroupHeight() {
+        const header = document.querySelector('.my-element');
+        const listGroup = document.querySelector('.list-group');
+        
+        if (!header || !listGroup) return;
+        
+        // Get the viewport height
+        const viewportHeight = window.innerHeight;
+        
+        // Get the position of the header
+        const headerRect = header.getBoundingClientRect();
+        
+        // Calculate available height (viewport height minus header bottom position)
+        const availableHeight = viewportHeight - headerRect.bottom;
+        
+        // Set the list group height
+        listGroup.style.height = availableHeight + 'px';
+        listGroup.style.overflowY = 'auto';
+    }
+
+    // Run on load
+    adjustListGroupHeight();
+    
+    // Run on resize
+    window.addEventListener('resize', adjustListGroupHeight);
+    
+    // Run when content changes (if needed)
+    const observer = new MutationObserver(adjustListGroupHeight);
+    observer.observe(document.body, { childList: true, subtree: true });
+});
+</script>
 </body>
 
 </html>

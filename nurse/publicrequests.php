@@ -117,7 +117,7 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 " style="height: 100vh;">
                     <!-- public requests -->
                         <div class="card shadow mb-4 parent" style="height: 100%;">
-                            <div class="card-header py-3 my-element" style="position: fixed; z-index: 9999; box-sizing: border-box;">
+                            <div class="card-header py-3 my-element" style="position: fixed; z-index: 20; box-sizing: border-box;">
                                 <h6 class="m-0 fw-bold text-primary">Available Public Requests</h6>
                             </div>
                                 <div class="list-group list-group-flush" style="max-height: 100%; overflow-y: auto;">

@@ -1,4 +1,8 @@
-<?php ob_start(); ?>
+<?php
+
+use function PHPSTORM_META\type;
+
+ob_start(); ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -37,8 +41,15 @@
         }
 
         @keyframes modalopen {
-            from {opacity: 0; transform: translateY(-50px);}
-            to {opacity: 1; transform: translateY(0);}
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .close {
@@ -167,174 +178,175 @@
         }
 
 
-/* Confirmation Modal Styles */
-#confirmModal .modal-content {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    animation: modalopen 0.3s;
-}
+        /* Confirmation Modal Styles */
+        #confirmModal .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: modalopen 0.3s;
+        }
 
 
-#confirmModalTitle {
-    margin-top: 0;
-    color: #333;
-}
+        #confirmModalTitle {
+            margin-top: 0;
+            color: #333;
+        }
 
-#confirmModalMessage {
-    color: #555;
-}
+        #confirmModalMessage {
+            color: #555;
+        }
 
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-}
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
 
-.btn-secondary:hover {
-    background-color: #5a6268;
-}
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
 
-/* Certification Modal Redesign */
-.certification-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
+        /* Certification Modal Redesign */
+        .certification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
 
-.certification-header h3 {
-    margin: 0;
-    color: #2c3e50;
-    font-size: 1.4rem;
-}
+        .certification-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.4rem;
+        }
 
-.status-badge {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: capitalize;
-}
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
 
-.pending-badge {
-    background-color: #fff3cd;
-    color: #856404;
-}
+        .pending-badge {
+            background-color: #fff3cd;
+            color: #856404;
+        }
 
-.approved-badge {
-    background-color: #d4edda;
-    color: #155724;
-}
+        .approved-badge {
+            background-color: #d4edda;
+            color: #155724;
+        }
 
-.rejected-badge {
-    background-color: #f8d7da;
-    color: #721c24;
-}
+        .rejected-badge {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
 
-.certification-details-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 25px;
-}
+        .certification-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
 
-.details-column {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
+        .details-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-.detail-section {
-    background: #fff;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
+        .detail-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
 
-.detail-section h4 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #3498db;
-    font-size: 1.1rem;
-}
+        .detail-section h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #3498db;
+            font-size: 1.1rem;
+        }
 
-.detail-row {
-    display: flex;
-    margin-bottom: 12px;
-}
+        .detail-row {
+            display: flex;
+            margin-bottom: 12px;
+        }
 
-.detail-label {
-    font-weight: 600;
-    color: #555;
-    width: 120px;
-    flex-shrink: 0;
-}
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            width: 120px;
+            flex-shrink: 0;
+        }
 
-.detail-value {
-    color: #333;
-}
+        .detail-value {
+            color: #333;
+        }
 
-.document-preview {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 10px;
-    background: #f9f9f9;
-}
+        .document-preview {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            background: #f9f9f9;
+        }
 
-.document-preview img {
-    max-width: 100%;
-    max-height: 300px;
-    display: block;
-    margin: 0 auto;
-    border-radius: 4px;
-}
+        .document-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 4px;
+        }
 
-.document-actions {
-    margin-top: 10px;
-    text-align: center;
-}
+        .document-actions {
+            margin-top: 10px;
+            text-align: center;
+        }
 
-.view-full-btn {
-    display: inline-block;
-    padding: 6px 12px;
-    background: #3498db;
-    color: white;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 13px;
-    transition: background 0.2s;
-}
+        .view-full-btn {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #3498db;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
 
-.view-full-btn:hover {
-    background: #2980b9;
-}
+        .view-full-btn:hover {
+            background: #2980b9;
+        }
 
-.comments-box {
-    background: #f8f9fa;
-    border: 1px solid #eee;
-    border-radius: 6px;
-    padding: 12px;
-    min-height: 80px;
-    white-space: pre-wrap;
-}
+        .comments-box {
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 12px;
+            min-height: 80px;
+            white-space: pre-wrap;
+        }
 
-.no-data-found, .invalid-request {
-    text-align: center;
-    padding: 30px;
-    color: #6c757d;
-}
+        .no-data-found,
+        .invalid-request {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+        }
 
-.no-data-found i, .invalid-request i {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    color: #dc3545;
-}
+        .no-data-found i,
+        .invalid-request i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #dc3545;
+        }
 
-.invalid-request i {
-    color: #ffc107;
-}
-
+        .invalid-request i {
+            color: #ffc107;
+        }
     </style>
 </head>
 
@@ -354,14 +366,38 @@
         if (isset($_POST['action'])) {
             $certificationId = $_POST['certification_id'];
             $action = $_POST['action'];
-            
+
             // Validate action
             if (in_array($action, ['approve', 'reject'])) {
                 $newStatus = $action === 'approve' ? 'approved' : 'rejected';
-                
+
                 $stmt = $conn->prepare("UPDATE certification SET Status = ? WHERE CertificationID = ?");
                 $stmt->bind_param("si", $newStatus, $certificationId);
-                
+
+                $stmtnurseID = $conn->prepare("SELECT NurseID, Name FROM certification WHERE CertificationID = ?");
+                $stmtnurseID->bind_param("i", $certificationId);
+                $stmtnurseID->execute();
+
+                $resultnurseID = $stmtnurseID->get_result(); // Get the result set
+                $nurseData = $resultnurseID->fetch_assoc();  // Fetch the row as an associative array
+                $nurseId = $nurseData['NurseID'];            // Extract the NurseID
+
+                $stmtnurseID->close(); // Close the statement
+                $message = 'Your certification of name  "'. $nurseData['Name']. '" has '  . $newStatus;
+                $title = 'Certification ' . $newStatus;
+                $type = $newStatus;
+                $senderId = 21;
+
+                $notificationStmt = $conn->prepare("INSERT INTO notification 
+                                (SenderID, SenderType, RecipientID, RecipientType, Title, Message, Type, Status) 
+                                VALUES (?, 'staff', ?, 'nurse', ?, ?, ?, 'Unread')");
+
+                $notificationStmt->bind_param("iisss", $senderId, $nurseId, $title, $message, $type);
+
+                $notificationStmt->execute();
+                $notificationStmt->close();
+
+
                 if ($stmt->execute()) {
                     $_SESSION['message'] = "Certification request has been $newStatus.";
                     $_SESSION['message_type'] = "success";
@@ -369,16 +405,17 @@
                     $_SESSION['message'] = "Error updating certification status.";
                     $_SESSION['message_type'] = "error";
                 }
-                
+
                 $stmt->close();
-                
+
                 // Refresh the page to show updated status
-                header("Location: ".$_SERVER['PHP_SELF']);
+                header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             }
         }
     }
     ?>
+
 
     <div class="container">
         <?php include "sidebar.php" ?>
@@ -392,14 +429,14 @@
                     <div class="card-body">
                         <?php if (isset($_SESSION['message'])): ?>
                             <div class="alert alert-<?php echo $_SESSION['message_type']; ?>">
-                                <?php 
-                                echo $_SESSION['message']; 
+                                <?php
+                                echo $_SESSION['message'];
                                 unset($_SESSION['message']);
                                 unset($_SESSION['message_type']);
                                 ?>
                             </div>
                         <?php endif; ?>
-                        
+
                         <div class="table-responsive">
                             <table>
                                 <thead>
@@ -421,9 +458,9 @@
                                               JOIN nurse n ON c.NurseID = n.NurseID
                                               JOIN user u ON n.UserID = u.UserID
                                               ORDER BY c.CreatedAt DESC";
-                                    
+
                                     $result = $conn->query($query);
-                                    
+
                                     if ($result && $result->num_rows > 0) {
                                         while ($row = $result->fetch_assoc()) {
                                             $statusClass = strtolower($row['Status']);
@@ -434,7 +471,7 @@
                                             echo "<td>" . date('Y-m-d', strtotime($row['CreatedAt'])) . "</td>";
                                             echo "<td><span class='status status-$statusClass'>{$row['Status']}</span></td>";
                                             echo "<td class='action-buttons'>";
-                                            
+
                                             // Show approve/reject only for pending certifications
                                             if ($row['Status'] === 'pending') {
                                                 echo "<form method='post' onsubmit='return confirmAction(\"approve\")'>
@@ -448,7 +485,7 @@
                                                         <button type='submit' class='btn btn-danger btn-sm'>Reject</button>
                                                       </form>";
                                             }
-                                            
+
                                             echo "<button class='btn btn-primary btn-sm view-btn' data-id='{$row['CertificationID']}'>View</button>";
                                             echo "</td>";
                                             echo "</tr>";
@@ -476,19 +513,19 @@
         </div>
     </div>
 
-<!-- Confirmation Modal -->
-<div id="confirmModal" class="modal">
-    <div class="modal-content" style="width: 400px;">
-        <div id="confirmModalBody" >
-            <h4 id="confirmModalTitle">Confirm Action</h4>
-            <p id="confirmModalMessage">Are you sure you want to perform this action?</p>
-            <div class="action-buttons" style="margin-top: 20px; justify-content: flex-end;">
-                <button id="confirmModalCancel" class="btn btn-secondary" style="margin-right: 10px;">Cancel</button>
-                <button id="confirmModalConfirm" class="btn btn-danger">Confirm</button>
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <div id="confirmModalBody">
+                <h4 id="confirmModalTitle">Confirm Action</h4>
+                <p id="confirmModalMessage">Are you sure you want to perform this action?</p>
+                <div class="action-buttons" style="margin-top: 20px; justify-content: flex-end;">
+                    <button id="confirmModalCancel" class="btn btn-secondary" style="margin-right: 10px;">Cancel</button>
+                    <button id="confirmModalConfirm" class="btn btn-danger">Confirm</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 
     <script>
@@ -498,11 +535,11 @@
                 const certId = this.getAttribute('data-id');
                 const modal = document.getElementById('certificationModal');
                 const modalBody = document.getElementById('modal-body');
-                
+
                 // Show loading state
                 modalBody.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
                 modal.style.display = 'block';
-                
+
                 // Load content via AJAX
                 fetch('get_certification_details.php?id=' + certId)
                     .then(response => response.text())
@@ -537,64 +574,63 @@
 
 
 
-    // Confirmation modal functionality
-    let currentForm = null;
-    let currentAction = null;
+        // Confirmation modal functionality
+        let currentForm = null;
+        let currentAction = null;
 
-    // Function to show confirmation modal
-    function showConfirmation(action, form) {
-        currentForm = form;
-        currentAction = action;
-        
-        const modal = document.getElementById('confirmModal');
-        const title = document.getElementById('confirmModalTitle');
-        const message = document.getElementById('confirmModalMessage');
-        const confirmBtn = document.getElementById('confirmModalConfirm');
-        
-        title.textContent = `Confirm ${action.charAt(0).toUpperCase() + action.slice(1)}`;
-        message.textContent = `Are you sure you want to ${action} this certification request?`;
-        
-        // Set button color based on action
-        if (action === 'approve') {
-            confirmBtn.className = 'btn btn-success';
-        } else {
-            confirmBtn.className = 'btn btn-danger';
+        // Function to show confirmation modal
+        function showConfirmation(action, form) {
+            currentForm = form;
+            currentAction = action;
+
+            const modal = document.getElementById('confirmModal');
+            const title = document.getElementById('confirmModalTitle');
+            const message = document.getElementById('confirmModalMessage');
+            const confirmBtn = document.getElementById('confirmModalConfirm');
+
+            title.textContent = `Confirm ${action.charAt(0).toUpperCase() + action.slice(1)}`;
+            message.textContent = `Are you sure you want to ${action} this certification request?`;
+
+            // Set button color based on action
+            if (action === 'approve') {
+                confirmBtn.className = 'btn btn-success';
+            } else {
+                confirmBtn.className = 'btn btn-danger';
+            }
+
+            confirmBtn.textContent = action.charAt(0).toUpperCase() + action.slice(1);
+            modal.style.display = 'block';
         }
-        
-        confirmBtn.textContent = action.charAt(0).toUpperCase() + action.slice(1);
-        modal.style.display = 'block';
-    }
 
-    // Confirm button handler
-    document.getElementById('confirmModalConfirm').addEventListener('click', function() {
-        if (currentForm) {
-            currentForm.submit();
-        }
-        document.getElementById('confirmModal').style.display = 'none';
-    });
-
-    // Cancel button handler
-    document.getElementById('confirmModalCancel').addEventListener('click', function() {
-        document.getElementById('confirmModal').style.display = 'none';
-    });
-
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        if (event.target === document.getElementById('confirmModal')) {
+        // Confirm button handler
+        document.getElementById('confirmModalConfirm').addEventListener('click', function() {
+            if (currentForm) {
+                currentForm.submit();
+            }
             document.getElementById('confirmModal').style.display = 'none';
-        }
-    });
+        });
 
-    // Modify your existing forms to use this modal
-    document.querySelectorAll('form[onsubmit]').forEach(form => {
-        form.onsubmit = function(e) {
-            e.preventDefault();
-            const action = this.querySelector('[name="action"]').value;
-            showConfirmation(action, this);
-            return false;
-        };
-    });
+        // Cancel button handler
+        document.getElementById('confirmModalCancel').addEventListener('click', function() {
+            document.getElementById('confirmModal').style.display = 'none';
+        });
 
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target === document.getElementById('confirmModal')) {
+                document.getElementById('confirmModal').style.display = 'none';
+            }
+        });
+
+        // Modify your existing forms to use this modal
+        document.querySelectorAll('form[onsubmit]').forEach(form => {
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                const action = this.querySelector('[name="action"]').value;
+                showConfirmation(action, this);
+                return false;
+            };
+        });
     </script>
 </body>
 

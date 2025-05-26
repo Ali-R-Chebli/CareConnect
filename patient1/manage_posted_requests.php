@@ -3,6 +3,17 @@ require '../connect.php';
 
 $patient_id = 1; // Hardcoded patient ID
 
+// Automatically reject pending public requests with past dates
+$current_date = date('Y-m-d');
+$sql = "UPDATE request 
+        SET RequestStatus = 'rejected', 
+            SpecialInstructions = CONCAT(IFNULL(SpecialInstructions, ''), ' Rejection reason: This request has been automatically rejected as the scheduled date has passed without confirmation.')
+        WHERE RequestStatus = 'pending' 
+        AND ispublic = 1 
+        AND Date < '$current_date' 
+        AND PatientID = $patient_id";
+$conn->query($sql);
+
 // Handle nurse selection
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['select_nurse'])) {
     $request_id = (int)$_POST['request_id'];
@@ -82,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_request'])) {
         // Confirm only if selected_count equals NumberOfNurses
         if ($selected_count == $number_of_nurses) {
             // Confirm the request
-            $sql = "UPDATE request SET RequestStatus = 'in progress' 
+            $sql = "UPDATE request SET RequestStatus = 'inprocess' 
                     WHERE RequestID = $request_id AND PatientID = $patient_id";
             $conn->query($sql);
 
@@ -154,14 +165,15 @@ if (isset($_GET['nurse_id']) && is_numeric($_GET['nurse_id']) && $_GET['nurse_id
     }
 }
 
-// Get all pending requests
+// Get all public pending requests 
 $sql = "SELECT r.*, 
-               (SELECT COUNT(*) FROM request_applications ra WHERE ra.RequestID = r.RequestID) AS applicant_count,
-               (SELECT COUNT(*) FROM request_applications ra WHERE ra.RequestID = r.RequestID AND ra.ApplicationStatus = 'selected') AS selected_count
-        FROM request r
-        WHERE r.PatientID = $patient_id 
-        AND r.RequestStatus = 'pending'
-        ORDER BY r.Date DESC"; // Newest first
+       (SELECT COUNT(*) FROM request_applications ra WHERE ra.RequestID = r.RequestID) AS applicant_count,
+       (SELECT COUNT(*) FROM request_applications ra WHERE ra.RequestID = r.RequestID AND ra.ApplicationStatus = 'selected') AS selected_count
+       FROM request r
+       WHERE r.PatientID = $patient_id 
+       AND r.RequestStatus = 'pending'
+       AND r.ispublic = 1
+       ORDER BY r.Date DESC";
         
 $result = $conn->query($sql);
 $posted_requests = $result->fetch_all(MYSQLI_ASSOC);
@@ -232,7 +244,7 @@ foreach ($posted_requests as $request) {
                 
                 <?php if (isset($_GET['success']) && $_GET['success'] == 'confirmed'): ?>
                     <div class="alert alert-success">
-                        Request is now in progress!
+                        Request is now inprocess!
                     </div>
                 <?php endif; ?>
                 
@@ -263,9 +275,6 @@ foreach ($posted_requests as $request) {
                                         </span>
                                         <span class="badge badge-nurses-needed rounded-pill">
                                             Needs <?php echo $request['NumberOfNurses']; ?> nurse(s)
-                                        </span>
-                                        <span class="badge bg-success rounded-pill">
-                                            <?php echo $request['selected_count']; ?> selected
                                         </span>
                                     </div>
                                 </div>

@@ -638,4 +638,4 @@ while ($row = $result_care_needed->fetch_assoc()) {
 </body>
 </html>
 
-talk to me in Arabic but give me all the code in English without using any security, Ajax, Jquery, Json, session.
+talk to me in Arabic but give me all the code in English (not in Arabic) without using any security, Ajax, Jquery, Json, session.

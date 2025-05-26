@@ -2,6 +2,7 @@
 include '../connect.php';
 
 $report_id = isset($_GET['report_id']) ? (int)$_GET['report_id'] : 0;
+$tab = isset($_GET['tab']) ? $_GET['tab'] : 'complaints'; // Get tab parameter
 
 $report_query = "
     SELECT r.ReportID, r.RequestID, r.Description, r.Date, r.Type,
@@ -51,7 +52,7 @@ if (!$report) {
                     <p><strong>Reporter:</strong> <?php echo $report['Reporter']; ?></p>
                     <p><strong>Reason:</strong> <?php echo $report['Description']; ?></p>
                     <p><strong>Date:</strong> <?php echo $report['Date']; ?></p>
-                    <a href="reports.php" class="btn btn-primary">Back to Reports</a>
+                    <a href="reports.php?tab=<?php echo $tab; ?>" class="btn btn-primary">Back to Reports</a>
                 </div>
             </div>
         </div>

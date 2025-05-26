@@ -3,12 +3,22 @@ require '../connect.php';
 
 $patient_id = 1; // Hardcoded patient ID
 
+// Automatically reject pending requests with past dates
+$current_date = date('Y-m-d');
+$sql = "UPDATE request 
+        SET RequestStatus = 'rejected', 
+            SpecialInstructions = CONCAT(IFNULL(SpecialInstructions, ''), ' Rejection reason: This request has been automatically rejected as the scheduled date has passed without confirmation.')
+        WHERE RequestStatus = 'pending' 
+        AND Date < '$current_date' 
+        AND PatientID = $patient_id";
+$conn->query($sql);
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Accept request (for private requests)
     if (isset($_POST['accept_request'])) {
         $request_id = (int)$_POST['request_id'];
-        $sql = "UPDATE request SET RequestStatus = 'in progress', PatientStatus = 'in progress' 
+        $sql = "UPDATE request SET RequestStatus = 'inprocess', PatientStatus = 'inprocess' 
                 WHERE RequestID = $request_id AND PatientID = $patient_id";
         $conn->query($sql);
     }
@@ -59,7 +69,7 @@ $filter_condition = '';
 if ($filter == 'pending') {
     $filter_condition = " AND r.RequestStatus = 'pending'";
 } elseif ($filter == 'in_progress') {
-    $filter_condition = " AND r.RequestStatus = 'in progress'";
+    $filter_condition = " AND r.RequestStatus = 'inprocess'";
 } elseif ($filter == 'rejected') {
     $filter_condition = " AND r.RequestStatus = 'rejected'";
 } elseif ($filter == 'completed') {
@@ -90,12 +100,6 @@ while ($row = $result->fetch_assoc()) {
     }
 }
 
-// Debug: Log number of requests
-error_log("Number of requests: " . count($requests));
-
-// Remove last row as a temporary fix (optional, comment out after fixing duplicates)
-# array_pop($requests);
-
 // Fetch existing ratings
 $ratings_result = $conn->query("SELECT RequestID, NurseID, Rating, Description FROM rating WHERE PatientID = $patient_id");
 $ratings = [];
@@ -112,14 +116,16 @@ foreach ($requests as $request) {
         
         // Private request: get nurse from request.NurseID
         if ($request['NurseID'] && $request['ispublic'] == 0) {
-            $nurses[] = [
-                'NurseID' => $request['NurseID'],
-                'NurseName' => $request['NurseName'],
-                'Specialization' => 'N/A',
-                'NurseBio' => 'N/A',
-                'NurseGender' => 'N/A',
-                'Language' => 'N/A'
-            ];
+            $sql = "SELECT n.NurseID, u.FullName AS NurseName, n.Bio AS NurseBio, 
+                           na.Specialization, na.Gender AS NurseGender, na.Language
+                    FROM nurse n
+                    JOIN user u ON n.UserID = u.UserID
+                    JOIN nurseapplication na ON n.NAID = na.NAID
+                    WHERE n.NurseID = " . (int)$request['NurseID'];
+            $result = $conn->query($sql);
+            if ($row = $result->fetch_assoc()) {
+                $nurses[] = $row;
+            }
         }
         
         // Public request: get accepted nurses from request_applications
@@ -158,27 +164,22 @@ foreach ($requests as $request) {
     }
 }
 
-// Debug: Log applicants for RequestID 2
-if (isset($applicants_per_request[2])) {
-    error_log("Applicants for RequestID 2: " . print_r($applicants_per_request[2], true));
-}
+// Update private request status based on NurseStatus before fetching requests
+$sql = "UPDATE request r
+        SET r.RequestStatus = 'inprocess'
+        WHERE r.ispublic = 0 AND r.NurseID IS NOT NULL 
+        AND r.NurseStatus = 'inprocess' AND r.RequestStatus != 'inprocess'
+        AND r.PatientID = $patient_id";
+$conn->query($sql);
 
-// Update private request status based on NurseStatus
-foreach ($requests as &$request) {
-    if ($request['ispublic'] == 0 && $request['NurseID']) {
-        if ($request['NurseStatus'] == 'in progress' && $request['RequestStatus'] != 'in progress') {
-            $sql = "UPDATE request SET RequestStatus = 'in progress' 
-                    WHERE RequestID = {$request['RequestID']} AND PatientID = $patient_id";
-            $conn->query($sql);
-            $request['RequestStatus'] = 'in progress';
-        } elseif ($request['NurseStatus'] == 'completed' && $request['RequestStatus'] != 'completed') {
-            $sql = "UPDATE request SET RequestStatus = 'completed', PatientStatus = 'completed' 
-                    WHERE RequestID = {$request['RequestID']} AND PatientID = $patient_id";
-            $conn->query($sql);
-            $request['RequestStatus'] = 'completed';
-        }
-    }
-}
+$sql = "UPDATE request r
+        SET r.RequestStatus = 'completed', r.PatientStatus = 'completed'
+        WHERE r.ispublic = 0 AND r.NurseID IS NOT NULL 
+        AND r.NurseStatus = 'completed' AND r.RequestStatus != 'completed'
+        AND r.PatientID = $patient_id";
+$conn->query($sql);
+
+
 ?>
 
 <!DOCTYPE html>
@@ -203,8 +204,29 @@ foreach ($requests as &$request) {
         .filter-buttons .btn { margin-right: 5px; margin-bottom: 5px; }
         .nav-tabs .nav-link { color: #495057; }
         .nav-tabs .nav-link.active { font-weight: bold; }
-        .actions-column { text-align: right; }
-        .action-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+        .actions-column { text-align: center; } /* Center the actions column */
+        .action-buttons {
+            display: flex;
+            flex-wrap: nowrap; /* Ensure buttons stay in one line */
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: center; /* Center buttons within the div */
+        }
+        .action-buttons .btn {
+            white-space: nowrap;
+        }
+        /* Change the color of btn-info for Details button here */
+        .btn-info {
+            background-color: #17a2b8; /* Default Bootstrap info color */
+            border-color: #17a2b8;
+        }
+        .btn-info:hover {
+            background-color: #138496; /* Darker shade for hover */
+            border-color: #117a8b;
+        }
+        .star-rating {
+            margin: 0 5px; /* Add spacing around stars */
+        }
     </style>
 </head>
 <body>
@@ -225,7 +247,7 @@ foreach ($requests as &$request) {
                 <div class="filter-buttons mb-4">
                     <a href="my_requests.php?filter=all" class="btn btn-sm btn-outline-secondary <?php echo $filter == 'all' ? 'active' : ''; ?>">All Requests</a>
                     <a href="my_requests.php?filter=pending" class="btn btn-sm btn-outline-warning <?php echo $filter == 'pending' ? 'active' : ''; ?>">Pending</a>
-                    <a href="my_requests.php?filter=in_progress" class="btn btn-sm btn-outline-primary <?php echo $filter == 'in_progress' ? 'active' : ''; ?>">In Progress</a>
+                    <a href="my_requests.php?filter=in_progress" class="btn btn-sm btn-outline-primary <?php echo $filter == 'in_progress' ? 'active' : ''; ?>">inprocess</a>
                     <a href="my_requests.php?filter=rejected" class="btn btn-sm btn-outline-danger <?php echo $filter == 'rejected' ? 'active' : ''; ?>">Rejected</a>
                     <a href="my_requests.php?filter=completed" class="btn btn-sm btn-outline-secondary <?php echo $filter == 'completed' ? 'active' : ''; ?>">Completed</a>
                 </div>
@@ -239,7 +261,7 @@ foreach ($requests as &$request) {
                                 <table class="table table-bordered table-hover">
                                     <thead>
                                         <tr>
-                                            <th>Request ID</th>
+                                            <th>Request</th>
                                             <th>Service Type</th>
                                             <th>Date & Time</th>
                                             <th>Nurse</th>
@@ -248,94 +270,107 @@ foreach ($requests as &$request) {
                                         </tr>
                                     </thead>
                                     <tbody>
-    <?php 
-    $displayed_request_ids = []; // Track displayed RequestIDs
-    foreach ($requests as $request): 
-        if (!in_array($request['RequestID'], $displayed_request_ids)): 
-            $displayed_request_ids[] = $request['RequestID'];
-    ?>
-        <tr>
-            <td><?php echo $request['RequestID']; ?></td>
-            <td><?php echo htmlspecialchars($request['Type']); ?></td>
-            <td>
-                <?php echo date('M d, Y', strtotime($request['Date'])) . ' at ' . date('h:i A', strtotime($request['Time'])); ?>
-            </td>
-            <td>
-                <?php if ($request['NurseID'] && $request['ispublic'] == 0): ?>
-                    <button type="button" class="btn p-0" style="text-decoration: none; color: #0d6efd;" 
-                            data-bs-toggle="modal" data-bs-target="#nurseModal<?php echo $request['RequestID']; ?>">
-                        <?php echo htmlspecialchars($request['NurseName'] ?: 'Unknown'); ?>
-                    </button>
-                <?php elseif ($request['ApplicationCount'] > 0 && $request['ispublic'] == 1): ?>
-                    <?php echo $request['ApplicationCount']; ?> applicants
-                <?php else: ?>
-                    No applicants yet
-                <?php endif; ?>
-            </td>
-            <td>
-                <span class="badge <?php 
-                    echo $request['RequestStatus'] == 'pending' ? 'bg-warning' : 
-                         ($request['RequestStatus'] == 'in progress' ? 'bg-primary' : 
-                         ($request['RequestStatus'] == 'rejected' ? 'bg-danger' : 'bg-success'));
-                ?>">
-                    <?php echo ucfirst($request['RequestStatus']); ?>
-                </span>
-            </td>
-            <td class="actions-column">
-                <div class="action-buttons">
-                    <?php if ($request['RequestStatus'] == 'pending' && $request['NurseID'] && $request['NurseStatus'] == 'accepted' && $request['ispublic'] == 0): ?>
-                        <form method="POST" class="d-inline">
-                            <input type="hidden" name="request_id" value="<?php echo $request['RequestID']; ?>">
-                            <button type="submit" name="accept_request" class="btn btn-sm btn-success">Accept</button>
-                        </form>
-                        <button type="button" class="btn btn-sm btn-danger" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#rejectModal<?php echo $request['RequestID']; ?>">
-                            Reject
-                        </button>
-                    <?php endif; ?>
-                    <?php if ($request['RequestStatus'] == 'pending'): ?>
-                        <button type="button" class="btn btn-sm btn-danger ms-auto" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#cancelModal<?php echo $request['RequestID']; ?>">
-                            Cancel
-                        </button>
-                    <?php endif; ?>
-                    <?php if ($request['ispublic'] == 1 && $request['ApplicationCount'] > 0): ?>
-                        <button type="button" class="btn btn-sm btn-primary" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#applicationsModal<?php echo $request['RequestID']; ?>">
-                            View Applications
-                        </button>
-                    <?php endif; ?>
-                    <?php if ($request['RequestStatus'] == 'completed' && $request['ispublic'] == 0 && isset($nurses_per_request[$request['RequestID']])): ?>
-                        <?php foreach ($nurses_per_request[$request['RequestID']] as $nurse): ?>
-                            <?php if (!isset($ratings[$request['RequestID'] . '_' . $nurse['NurseID']])): ?>
-                                <button type="button" class="btn btn-sm btn-success" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#ratingModal<?php echo $request['RequestID'] . '_' . $nurse['NurseID']; ?>">
-                                    Rate
-                                </button>
-                            <?php else: ?>
-                                <div class="star-rating">
-                                    <?php for ($i = 1; $i <= 5; $i++): ?>
-                                        <i class="fas fa-star <?php echo $i <= $ratings[$request['RequestID'] . '_' . $nurse['NurseID']]['Rating'] ? 'text-warning' : 'text-secondary'; ?>"></i>
-                                    <?php endfor; ?>
-                                </div>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                    <button class="btn btn-sm btn-link" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#detailsModal<?php echo $request['RequestID']; ?>">
-                        Details
-                    </button>
-                </div>
-            </td>
-        </tr>
-    <?php endif; ?>
-    <?php endforeach; ?>
-</tbody>
+                                <?php 
+                                $displayed_request_ids = []; // Track displayed RequestIDs
+                                $row_number = 1; // Initialize row number
+                                foreach ($requests as $request): 
+                                    if (!in_array($request['RequestID'], $displayed_request_ids)): 
+                                        $displayed_request_ids[] = $request['RequestID'];
+                                ?>
+                                <tr>
+                                    <td><?php echo $row_number; ?></td>
+                                    <td><?php echo htmlspecialchars($request['Type']); ?></td>
+                                    <td>
+                                        <?php echo date('M d, Y', strtotime($request['Date'])) . ' at ' . date('h:i A', strtotime($request['Time'])); ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($request['NurseID'] && $request['ispublic'] == 0): ?>
+                                            <button type="button" class="btn p-0" style="text-decoration: none; color: #0d6efd;" 
+                                                    data-bs-toggle="modal" data-bs-target="#nurseModal<?php echo $request['RequestID']; ?>">
+                                                <?php echo htmlspecialchars($request['NurseName'] ?: 'Unknown'); ?>
+                                            </button>
+                                        <?php elseif ($request['ApplicationCount'] > 0 && $request['ispublic'] == 1): ?>
+                                            <?php echo $request['ApplicationCount']; ?> applicants
+                                        <?php else: ?>
+                                            No applicants yet
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?php 
+                                            echo $request['RequestStatus'] == 'pending' ? 'bg-warning' : 
+                                                ($request['RequestStatus'] == 'inprocess' ? 'bg-primary' : 
+                                                ($request['RequestStatus'] == 'rejected' ? 'bg-danger' : 'bg-success'));
+                                        ?>">
+                                            <?php echo ucfirst($request['RequestStatus']); ?>
+                                        </span>
+                                    </td>
+                                    <td class="actions-column">
+                                    <div class="action-buttons">
+                                        <!-- View Applications (Far Left) -->
+                                        <?php if ($request['ispublic'] == 1 && $request['ApplicationCount'] > 0): ?>
+                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#applicationsModal<?php echo $request['RequestID']; ?>">
+                                                View Applications
+                                            </button>
+                                        <?php endif; ?>
+                                        
+                                        <!-- Rating Stars or Rate Button (After View Applications, Far Left if no View Applications) -->
+                                        <?php if ($request['RequestStatus'] == 'completed' && $request['ispublic'] == 0 && isset($nurses_per_request[$request['RequestID']])): ?>
+                                            <?php foreach ($nurses_per_request[$request['RequestID']] as $nurse): ?>
+                                                <?php if (!isset($ratings[$request['RequestID'] . '_' . $nurse['NurseID']])): ?>
+                                                    <button type="button" class="btn btn-sm btn-success" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#ratingModal<?php echo $request['RequestID'] . '_' . $nurse['NurseID']; ?>">
+                                                        Rate
+                                                    </button>
+                                                <?php else: ?>
+                                                    <div class="star-rating">
+                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                            <i class="fas fa-star <?php echo $i <= $ratings[$request['RequestID'] . '_' . $nurse['NurseID']]['Rating'] ? 'text-warning' : 'text-secondary'; ?>"></i>
+                                                        <?php endfor; ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                        
+                                        <!-- Accept/Reject for private pending requests (Before Details) -->
+                                        <?php if ($request['RequestStatus'] == 'pending' && $request['NurseID'] && $request['NurseStatus'] == 'accepted' && $request['ispublic'] == 0): ?>
+                                            <form method="POST" class="d-inline">
+                                                <input type="hidden" name="request_id" value="<?php echo $request['RequestID']; ?>">
+                                                <button type="submit" name="accept_request" class="btn btn-sm btn-success">Accept</button>
+                                            </form>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#rejectModal<?php echo $request['RequestID']; ?>">
+                                                Reject
+                                            </button>
+                                        <?php endif; ?>
+                                        
+                                        <!-- Details (Before Cancel, Far Right if no Cancel) -->
+                                        <button class="btn btn-sm btn-info" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#detailsModal<?php echo $request['RequestID']; ?>">
+                                            Details
+                                        </button>
+                                        
+                                        <!-- Cancel (Far Right) -->
+                                        <?php if ($request['RequestStatus'] == 'pending'): ?>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#cancelModal<?php echo $request['RequestID']; ?>">
+                                                Cancel
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                </tr>
+                            <?php 
+                                $row_number++; // Increment row number
+                                endif; 
+                                endforeach; 
+                            ?>
+                            </tbody>
                                 </table>
                             </div>
                         <?php endif; ?>
@@ -347,7 +382,8 @@ foreach ($requests as &$request) {
 
     <!-- Nurse Modals (for private requests) -->
     <?php foreach ($requests as $request): ?>
-        <?php if ($request['NurseID'] && $request['ispublic'] == 0): ?>
+        <?php if ($request['NurseID'] && $request['ispublic'] == 0 && isset($nurses_per_request[$request['RequestID']])): ?>
+            <?php $nurse = $nurses_per_request[$request['RequestID']][0]; ?>
             <div class="modal fade" id="nurseModal<?php echo $request['RequestID']; ?>" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -358,18 +394,18 @@ foreach ($requests as &$request) {
                         <div class="modal-body">
                             <div class="text-center mb-3">
                                 <img src="https://via.placeholder.com/150" class="rounded-circle profile-img" width="100" alt="Nurse">
-                                <h5><?php echo htmlspecialchars($request['NurseName'] ?: 'Unknown'); ?></h5>
-                                <p class="text-muted">N/A</p>
+                                <h5><?php echo htmlspecialchars($nurse['NurseName'] ?: 'Unknown'); ?></h5>
+                                <p class="text-muted"><?php echo htmlspecialchars($nurse['Specialization'] ?: 'N/A'); ?></p>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><strong>Gender:</strong> N/A</p>
-                                    <p><strong>Languages:</strong> N/A</p>
+                                    <p><strong>Gender:</strong> <?php echo htmlspecialchars($nurse['NurseGender'] ?: 'N/A'); ?></p>
+                                    <p><strong>Languages:</strong> <?php echo htmlspecialchars($nurse['Language'] ?: 'N/A'); ?></p>
                                 </div>
                             </div>
                             <hr>
                             <h6>About</h6>
-                            <p>No bio available.</p>
+                            <p><?php echo htmlspecialchars($nurse['NurseBio'] ?: 'No bio available.'); ?></p>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -394,7 +430,7 @@ foreach ($requests as &$request) {
                             <div class="modal-body">
                                 <input type="hidden" name="request_id" value="<?php echo $request['RequestID']; ?>">
                                 <div class="mb-3">
-                                    <label for="rejectiondeclinereason<?php echo $request['RequestID']; ?>" class="form-label">declinereason for Rejection</label>
+                                    <label for="rejectiondeclinereason<?php echo $request['RequestID']; ?>" class="form-label">Reason for Rejection</label>
                                     <textarea class="form-control" id="rejectiondeclinereason<?php echo $request['RequestID']; ?>" 
                                               name="rejection_declinereason" rows="3" required></textarea>
                                 </div>
@@ -421,7 +457,7 @@ foreach ($requests as &$request) {
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <p>Are you sure you want to cancel Request #<?php echo $request['RequestID']; ?>? This will mark the request as rejected.</p>
+                            <p>Are you sure you want to cancel Request ? This will mark the request as rejected.</p>
                         </div>
                         <form method="POST">
                             <input type="hidden" name="request_id" value="<?php echo $request['RequestID']; ?>">
@@ -640,7 +676,7 @@ foreach ($requests as &$request) {
         <?php endif; ?>
     <?php endforeach; ?>
 
-    <!-- Nurse Profile Modals for public requests (completed, in progress, rejected) -->
+    <!-- Nurse Profile Modals for public requests (completed, inprocess, rejected) -->
     <?php foreach ($requests as $request): ?>
         <?php if ($request['ispublic'] == 1 && $request['ApplicationCount'] > 0): ?>
             <?php foreach ($applicants_per_request[$request['RequestID']] as $applicant): ?>

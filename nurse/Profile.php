@@ -1,6 +1,6 @@
 <?php
 session_start();
-$_SESSION['nurse_id'] = 9;
+$_SESSION['nurse_id'] = 1;
 $_SESSION['user_type'] = 'nurse';
 $_SESSION['logged_in'] = true;
 require_once 'db_connection.php';
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 // Check file size (max 2MB)
-                if ($_FILES["profile_photo"]["size"] > 2000000) {
+                if ($_FILES["profile_photo"]["size"] > 90000000) {
                     throw new Exception("Sorry, your file is too large. Max 2MB allowed.");
                 }
 
@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // Check file size
-        if ($_FILES["cert_image"]["size"] > 500000) {
+        if ($_FILES["cert_image"]["size"] > 9000000) {
             $_SESSION['error'] = "Sorry, your file is too large.";
             $uploadOk = 0;
         }
@@ -241,6 +241,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit();
         } catch (Exception $e) {
             $_SESSION['error'] = "Error deleting service: " . $e->getMessage();
+        }
+    } elseif (isset($_POST['toggle_availability'])) {
+        // Handle availability toggle
+        try {
+            // Get current availability status
+            $stmt = $conn->prepare("SELECT Availability FROM nurse WHERE NurseID = ?");
+            $stmt->bind_param("i", $nurse_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result->num_rows > 0) {
+                $nurse = $result->fetch_assoc();
+                $new_availability = $nurse['Availability'] ? 0 : 1;
+
+                // Update availability
+                $stmt = $conn->prepare("UPDATE nurse SET Availability = ? WHERE NurseID = ?");
+                $stmt->bind_param("ii", $new_availability, $nurse_id);
+                $stmt->execute();
+
+                $_SESSION['success'] = "Availability updated successfully!";
+                header("Refresh:0");
+                exit();
+            }
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Error updating availability: " . $e->getMessage();
         }
     }
 }
@@ -330,162 +355,174 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="tab-content" id="profileTabsContent">
 
 
-<!-- Profile Tab - Enhanced Design -->
-<div class="tab-pane fade show active" id="profile" role="tabpanel">
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="card mb-4 border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="position-relative d-inline-block">
-                        <img src="<?= $nurse_data['image_path'] ?? 'https://via.placeholder.com/150' ?>" 
-                             alt="Profile Photo"
-                             class="profile-img rounded-circle mb-3 border border-3 border-primary"
-                             id="profilePhotoPreview">
-                        <div class="position-absolute bottom-0 end-0 bg-primary rounded-circle p-2 border border-3 border-white">
-                            <label for="profile_photo" class="mb-0 cursor-pointer">
-                                <i class="fas fa-camera text-white"></i>
-                                <input type="file" id="profile_photo" name="profile_photo" accept="image/*" 
-                                       onchange="previewProfilePhoto(this)" class="d-none">
-                            </label>
-                        </div>
-                    </div>
-                    <h4 class="card-title mb-1"><?= htmlspecialchars($user_data['FullName'] ?? '') ?></h4>
-                    <p class="text-muted mb-2">Nurse ID: <?= $nurse_id ?></p>
-                    
-                    <div class="d-flex justify-content-center gap-2 mb-3">
-                        <a href="mailto:<?= htmlspecialchars($user_data['Email'] ?? '') ?>" class="text-decoration-none">
-                            <span class="badge bg-light text-dark p-2">
-                                <i class="fas fa-envelope me-1 text-primary"></i>
-                                <?= htmlspecialchars($user_data['Email'] ?? '') ?>
-                            </span>
-                        </a>
-                    </div>
-                    
-                    <div class="d-flex justify-content-center">
-                        <a href="tel:<?= htmlspecialchars($user_data['PhoneNumber'] ?? '') ?>" class="btn btn-sm btn-outline-primary rounded-pill">
-                            <i class="fas fa-phone me-1"></i>
-                            <?= htmlspecialchars($user_data['PhoneNumber'] ?? '') ?>
-                        </a>
-                    </div>
-                    
-                    <hr class="my-3">
-                    
-                    <div class="text-start">
-                        <h6 class="fw-bold mb-2">Address Information</h6>
-                        <ul class="list-unstyled small">
-                            <li class="mb-1">
-                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                                <?= htmlspecialchars($address_data['Street'] ?? '') ?>, 
-                                <?= htmlspecialchars($address_data['Building'] ?? '') ?>
-                            </li>
-                            <li class="mb-1">
-                                <i class="fas fa-city text-primary me-2"></i>
-                                <?= htmlspecialchars($address_data['City'] ?? '') ?>
-                            </li>
-                            <li>
-                                <i class="fas fa-flag text-primary me-2"></i>
-                                <?= htmlspecialchars($address_data['Country'] ?? '') ?>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="mb-0">Profile Information</h5>
-                </div>
-                <div class="card-body pt-1">
-                    <form method="POST" enctype="multipart/form-data">
+                    <!-- Profile Tab - Enhanced Design -->
+                    <div class="tab-pane fade show active" id="profile" role="tabpanel">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="fullname" class="form-label fw-semibold">Full Name</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="fas fa-user text-primary"></i></span>
-                                    <input type="text" class="form-control" id="fullname" name="fullname" 
-                                           value="<?= htmlspecialchars($user_data['FullName'] ?? '') ?>" required>
+                            <div class="col-lg-4">
+                                <div class="card mb-4 border-0 shadow-sm">
+                                    <div class="card-body text-center p-4">
+                                        <div class="position-relative d-inline-block">
+                                            <img src="<?= $nurse_data['image_path'] ?? 'https://via.placeholder.com/150' ?>"
+                                                alt="Profile Photo"
+                                                class="profile-img rounded-circle mb-3 border border-3 border-primary"
+                                                id="profilePhotoPreview">
+                                            <div class="position-absolute bottom-0 end-0 bg-primary rounded-circle p-2 border border-3 border-white">
+                                                <label for="profile_photo" class="mb-0 cursor-pointer">
+                                                    <i class="fas fa-camera text-white"></i>
+                                                    <input type="file" id="profile_photo" name="profile_photo" accept="image/*"
+                                                        onchange="previewProfilePhoto(this)" class="d-none">
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <h4 class="card-title mb-1"><?= htmlspecialchars($user_data['FullName'] ?? '') ?></h4>
+                                        <p class="text-muted mb-2">Nurse ID: <?= $nurse_id ?></p>
+
+                                        <div class="d-flex justify-content-center gap-2 mb-3">
+                                            <a href="mailto:<?= htmlspecialchars($user_data['Email'] ?? '') ?>" class="text-decoration-none">
+                                                <span class="badge bg-light text-dark p-2">
+                                                    <i class="fas fa-envelope me-1 text-primary"></i>
+                                                    <?= htmlspecialchars($user_data['Email'] ?? '') ?>
+                                                </span>
+                                            </a>
+                                        </div>
+
+                                        <div class="d-flex justify-content-center">
+                                            <a href="tel:<?= htmlspecialchars($user_data['PhoneNumber'] ?? '') ?>" class="btn btn-sm btn-outline-primary rounded-pill">
+                                                <i class="fas fa-phone me-1"></i>
+                                                <?= htmlspecialchars($user_data['PhoneNumber'] ?? '') ?>
+                                            </a>
+                                        </div>
+
+                                        <!-- Add this right after the phone number button in the profile card -->
+                                        <div class="d-flex justify-content-center gap-2 mb-3 mt-3">
+                                            <form method="POST" class="d-inline">
+                                                <button type="submit" name="toggle_availability"
+                                                    class="btn btn-sm <?= $nurse_data['Availability'] ? 'btn-success' : 'btn-secondary' ?> rounded-pill">
+                                                    <i class="fas fa-<?= $nurse_data['Availability'] ? 'check-circle' : 'times-circle' ?> me-1"></i>
+                                                    <?= $nurse_data['Availability'] ? 'Available' : 'Not Available' ?>
+                                                </button>
+                                            </form>
+                                        </div>
+
+
+                                        <hr class="my-3">
+
+                                        <div class="text-start">
+                                            <h6 class="fw-bold mb-2">Address Information</h6>
+                                            <ul class="list-unstyled small">
+                                                <li class="mb-1">
+                                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                                    <?= htmlspecialchars($address_data['Street'] ?? '') ?>,
+                                                    <?= htmlspecialchars($address_data['Building'] ?? '') ?>
+                                                </li>
+                                                <li class="mb-1">
+                                                    <i class="fas fa-city text-primary me-2"></i>
+                                                    <?= htmlspecialchars($address_data['City'] ?? '') ?>
+                                                </li>
+                                                <li>
+                                                    <i class="fas fa-flag text-primary me-2"></i>
+                                                    <?= htmlspecialchars($address_data['Country'] ?? '') ?>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="phone" class="form-label fw-semibold">Phone Number</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="fas fa-phone text-primary"></i></span>
-                                    <input type="tel" class="form-control" id="phone" name="phone" 
-                                           value="<?= htmlspecialchars($user_data['PhoneNumber'] ?? '') ?>">
+
+                            <div class="col-lg-8">
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-white border-0 py-3">
+                                        <h5 class="mb-0">Profile Information</h5>
+                                    </div>
+                                    <div class="card-body pt-1">
+                                        <form method="POST" enctype="multipart/form-data">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="fullname" class="form-label fw-semibold">Full Name</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text bg-light"><i class="fas fa-user text-primary"></i></span>
+                                                        <input type="text" class="form-control" id="fullname" name="fullname"
+                                                            value="<?= htmlspecialchars($user_data['FullName'] ?? '') ?>" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text bg-light"><i class="fas fa-phone text-primary"></i></span>
+                                                        <input type="tel" class="form-control" id="phone" name="phone"
+                                                            value="<?= htmlspecialchars($user_data['PhoneNumber'] ?? '') ?>">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="bio" class="form-label fw-semibold">Professional Bio</label>
+                                                <textarea class="form-control" id="bio" name="bio" rows="4"
+                                                    placeholder="Tell patients about your experience and specialties"><?= htmlspecialchars($nurse_data['Bio'] ?? '') ?></textarea>
+                                                <div class="form-text">This will be displayed on your public profile.</div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Profile Photo</label>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="flex-shrink-0">
+                                                        <img src="<?= $nurse_data['image_path'] ?? 'https://via.placeholder.com/150' ?>"
+                                                            alt="Current Photo" class="rounded-circle" width="60" height="60">
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <input class="form-control form-control-sm" type="file" id="profile_photo"
+                                                            name="profile_photo" accept="image/*" onchange="previewProfilePhoto(this)">
+                                                        <div class="form-text small">JPG, PNG or GIF. Max size 2MB.</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-end mt-4">
+                                                <button type="submit" name="update_profile" class="btn btn-primary px-4">
+                                                    <i class="fas fa-save me-1"></i> Save Changes
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="bio" class="form-label fw-semibold">Professional Bio</label>
-                            <textarea class="form-control" id="bio" name="bio" rows="4" 
-                                      placeholder="Tell patients about your experience and specialties"><?= htmlspecialchars($nurse_data['Bio'] ?? '') ?></textarea>
-                            <div class="form-text">This will be displayed on your public profile.</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Profile Photo</label>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="flex-shrink-0">
-                                    <img src="<?= $nurse_data['image_path'] ?? 'https://via.placeholder.com/150' ?>" 
-                                         alt="Current Photo" class="rounded-circle" width="60" height="60">
+
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0 py-3">
+                                        <h5 class="mb-0">Account Details</h5>
+                                    </div>
+                                    <div class="card-body pt-1">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-semibold">Email Address</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light"><i class="fas fa-envelope text-primary"></i></span>
+                                                    <input type="text" class="form-control" value="<?= htmlspecialchars($user_data['Email'] ?? '') ?>" readonly>
+                                                </div>
+                                                <div class="form-text">Contact admin to change email</div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-semibold">Account Status</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light"><i class="fas fa-shield-alt text-primary"></i></span>
+                                                    <input type="text" class="form-control" value="Active" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-warning mt-3">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-exclamation-circle me-2"></i>
+                                                <div>
+                                                    <h6 class="alert-heading mb-1">Security Notice</h6>
+                                                    <p class="small mb-0">For security reasons, some account details can only be changed by administrators.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <input class="form-control form-control-sm" type="file" id="profile_photo" 
-                                           name="profile_photo" accept="image/*" onchange="previewProfilePhoto(this)">
-                                    <div class="form-text small">JPG, PNG or GIF. Max size 2MB.</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-end mt-4">
-                            <button type="submit" name="update_profile" class="btn btn-primary px-4">
-                                <i class="fas fa-save me-1"></i> Save Changes
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="mb-0">Account Details</h5>
-                </div>
-                <div class="card-body pt-1">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Email Address</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-envelope text-primary"></i></span>
-                                <input type="text" class="form-control" value="<?= htmlspecialchars($user_data['Email'] ?? '') ?>" readonly>
-                            </div>
-                            <div class="form-text">Contact admin to change email</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Account Status</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-shield-alt text-primary"></i></span>
-                                <input type="text" class="form-control" value="Active" readonly>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="alert alert-warning mt-3">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            <div>
-                                <h6 class="alert-heading mb-1">Security Notice</h6>
-                                <p class="small mb-0">For security reasons, some account details can only be changed by administrators.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 
 

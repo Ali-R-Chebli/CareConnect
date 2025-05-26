@@ -38,11 +38,10 @@ while ($row = mysqli_fetch_assoc($result)) {
     $subscriptions[] = $row;
 }
 
-// Debugging: Count rows returned
-
 // Handle subscription cancellation or activation
 if (isset($_POST['cancel_subscription'])) {
     $sid = intval($_POST['sid']);
+    $status_filter = isset($_POST['status']) ? $_POST['status'] : '';
     $updateQuery = "UPDATE subscribe SET Status = 'Cancelled' WHERE SID = $sid";
     if (mysqli_query($conn, $updateQuery)) {
         header("Location: subscriptions.php" . ($status_filter ? "?status=$status_filter" : ""));
@@ -52,6 +51,7 @@ if (isset($_POST['cancel_subscription'])) {
     }
 } elseif (isset($_POST['activate_subscription'])) {
     $sid = intval($_POST['sid']);
+    $status_filter = isset($_POST['status']) ? $_POST['status'] : '';
     $updateQuery = "UPDATE subscribe SET Status = 'active' WHERE SID = $sid";
     if (mysqli_query($conn, $updateQuery)) {
         header("Location: subscriptions.php" . ($status_filter ? "?status=$status_filter" : ""));
@@ -85,20 +85,22 @@ if (isset($_POST['cancel_subscription'])) {
             <?php if ($debug_message) { ?>
                 <div class="alert alert-info"><?php echo htmlspecialchars($debug_message); ?></div>
             <?php } ?>
-            <!-- Filter -->
-            <form method="GET" class="mb-3">
-                <div class="row">
-                    <div class="col-md-4">
-                        <label for="statusFilter" class="form-label">Filter by Status</label>
-                        <select class="form-select" id="statusFilter" name="status" onchange="this.form.submit()">
-                            <option value="">All Statuses</option>
-                            <option value="active" <?php echo $status_filter === 'active' ? 'selected' : ''; ?>>Active</option>
-                            <option value="expired" <?php echo $status_filter === 'expired' ? 'selected' : ''; ?>>Expired</option>
-                            <option value="cancelled" <?php echo $status_filter === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-                        </select>
-                    </div>
+            <!-- Filter and Search -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="statusFilter" class="form-label">Filter by Status</label>
+                    <select class="form-select" id="statusFilter" name="status" onchange="updateFilters()">
+                        <option value="">All Statuses</option>
+                        <option value="active" <?php echo $status_filter === 'active' ? 'selected' : ''; ?>>Active</option>
+                        <option value="expired" <?php echo $status_filter === 'expired' ? 'selected' : ''; ?>>Expired</option>
+                        <option value="cancelled" <?php echo $status_filter === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                    </select>
                 </div>
-            </form>
+                <div class="col-md-4">
+                    <label for="nameFilter" class="form-label">Search by Nurse Name</label>
+                    <input type="text" class="form-control" id="nameFilter" placeholder="Enter nurse name" oninput="filterTable()">
+                </div>
+            </div>
             <!-- Subscriptions Table -->
             <table class="table table-striped shadow-sm" id="subscriptionsTable">
                 <thead>
@@ -173,6 +175,7 @@ if (isset($_POST['cancel_subscription'])) {
                                             <div class="modal-footer">
                                                 <form method="POST">
                                                     <input type="hidden" name="sid" value="<?php echo $sub['SID']; ?>">
+                                                    <input type="hidden" name="status" value="<?php echo $status_filter; ?>">
                                                     <button type="submit" name="cancel_subscription" class="btn btn-danger">Yes, Cancel</button>
                                                 </form>
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
@@ -196,6 +199,7 @@ if (isset($_POST['cancel_subscription'])) {
                                             <div class="modal-footer">
                                                 <form method="POST">
                                                     <input type="hidden" name="sid" value="<?php echo $sub['SID']; ?>">
+                                                    <input type="hidden" name="status" value="<?php echo $status_filter; ?>">
                                                     <button type="submit" name="activate_subscription" class="btn btn-success">Yes, Activate</button>
                                                 </form>
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
@@ -217,5 +221,39 @@ if (isset($_POST['cancel_subscription'])) {
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function filterTable() {
+            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+            const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
+            const rows = document.querySelectorAll('#subscriptionsTable tbody tr');
+
+            rows.forEach(row => {
+                const status = row.cells[4].textContent.toLowerCase();
+                const name = row.cells[1].textContent.toLowerCase();
+
+                const statusMatch = statusFilter === '' || status.includes(statusFilter);
+                const nameMatch = nameFilter === '' || name.includes(nameFilter);
+
+                row.style.display = statusMatch && nameMatch ? '' : 'none';
+            });
+        }
+
+        function updateFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            let url = 'subscriptions.php';
+            if (statusFilter) {
+                url += '?status=' + statusFilter;
+            }
+            window.location.href = url;
+        }
+
+        // Apply filter automatically on page load based on URL parameters
+        window.onload = function() {
+            <?php if (isset($_GET['status'])): ?>
+                document.getElementById('statusFilter').value = '<?php echo $status_filter; ?>';
+            <?php endif; ?>
+            filterTable();
+        };
+    </script>
 </body>
 </html>

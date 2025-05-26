@@ -19,7 +19,7 @@ $patients = mysqli_num_rows(mysqli_query($conn, "SELECT UserID FROM user WHERE R
 $nurses = mysqli_num_rows(mysqli_query($conn, "SELECT UserID FROM user WHERE Role = 'nurse'"));
 $staff = mysqli_num_rows(mysqli_query($conn, "SELECT UserID FROM user WHERE Role = 'staff' OR Role = 'admin'"));
 $pendingRequests = mysqli_num_rows(mysqli_query($conn, "SELECT RequestID FROM request WHERE RequestStatus = 'pending'"));
-$inProgressRequests = mysqli_num_rows(mysqli_query($conn, "SELECT RequestID FROM request WHERE RequestStatus = 'in progress'"));
+$inProgressRequests = mysqli_num_rows(mysqli_query($conn, "SELECT RequestID FROM request WHERE RequestStatus = 'inprocess'"));
 $completedRequests = mysqli_num_rows(mysqli_query($conn, "SELECT RequestID FROM request WHERE RequestStatus = 'completed'"));
 $rejectedRequests = mysqli_num_rows(mysqli_query($conn, "SELECT RequestID FROM request WHERE RequestStatus = 'rejected'"));
 $activeSubscriptions = mysqli_num_rows(mysqli_query($conn, "SELECT SID FROM subscribe WHERE Status = 'active'"));
@@ -102,10 +102,10 @@ $activeSubscriptions = mysqli_num_rows(mysqli_query($conn, "SELECT SID FROM subs
                     </a>
                 </div>
                 <div class="col-md-3">
-                    <a href="requests.php?status=in progress" class="text-decoration-none">
+                    <a href="requests.php?status=inprocess" class="text-decoration-none">
                         <div class="card shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title">In Progress Requests</h5>
+                                <h5 class="card-title">inprocess Requests</h5>
                                 <p class="card-text display-6"><?php echo $inProgressRequests; ?></p>
                             </div>
                         </div>

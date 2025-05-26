@@ -1,7 +1,7 @@
 <div class="col-md-3 col-lg-2 d-md-block sidebar bg-primary collapse" id="sidebarMenu">
     <div class="position-sticky pt-3">
         <div class="text-center mb-4">
-            <h4 class="text-white">Home Nursing</h4>
+            <h4 class="text-white">Home Patient</h4>
             <p class="text-white-50 small">Patient Portal</p>
         </div>
         <ul class="nav flex-column">

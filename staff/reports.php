@@ -141,7 +141,6 @@ $result = $stmt->get_result();
     <div class="container">
         <?php include "sidebar.php" ?>
         <div class="main-content">
-            <?php include "header.php" ?>
             <div class="tab-content active" id="reports">
                 <div class="card">
                     <div class="card-header">

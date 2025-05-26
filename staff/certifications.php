@@ -420,7 +420,6 @@ ob_start(); ?>
     <div class="container">
         <?php include "sidebar.php" ?>
         <div class="main-content">
-            <?php include "header.php" ?>
             <div class="tab-content active" id="certifications">
                 <div class="card">
                     <div class="card-header">

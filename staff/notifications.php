@@ -183,9 +183,7 @@
     
     <div class="container">
         <?php include "sidebar.php" ?>
-        <div class="main-content">
-            <?php include "header.php" ?>
-            
+        <div class="main-content">            
             <?php if (isset($_SESSION['message'])): ?>
                 <div class="alert alert-<?php echo $_SESSION['message_type']; ?>">
                     <?php 

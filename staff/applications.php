@@ -374,15 +374,6 @@ if ($result) {
     <div class="container">
         <?php include "sidebar.php" ?>
         <div class="main-content">
-            <div class="header">
-                <h2>Staff Dashboard</h2>
-                <div class="user-info">
-                    <div class="notification-icon">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </div>
-                </div>
-            </div>
             <div class="tab-content active" id="applications">
                 <div class="card">
                     <div class="card-header">

@@ -14,7 +14,7 @@ if (isset($_GET['id'])) {
         $row = $result->fetch_assoc();
 
         echo "<div class='cert-details-container'>";
-        
+
         // Header
         echo '<div class="cert-header" style="display: flex; justify-content: space-between;">';
         echo "<h3>Nurse Application Details</h3>";
@@ -39,7 +39,7 @@ if (isset($_GET['id'])) {
         echo "<div class='detail-group'><label>Specialization:</label><p class='detail-value'>{$row['Specialization']}</p></div>";
         echo "<div class='detail-group'><label>Syndicate Number:</label><p class='detail-value'>{$row['SyndicateNumber']}</p></div>";
         echo "<div class='detail-group'><label>Status:</label><p class='detail-value'><span class='status " . strtolower($row['Status']) . "'>{$row['Status']}</span></p></div>";
-        
+
         if (!empty($row['Comments'])) {
             echo "<div class='detail-group'><label>Comments:</label><p class='detail-value'>{$row['Comments']}</p></div>";
         }
@@ -53,22 +53,38 @@ if (isset($_GET['id'])) {
         // third column
         echo "<div class='cert-column'>";
         // Document (Image)
+        // if (!empty($row['Picture'])) {
+        //     echo "<div class='document-preview'>";
+        //     echo "<label>Profile Picture:</label>";
+        //     echo "<div class='image-container'>";
+        //     echo "<img src='{$row['Picture']}' alt='Profile Picture'>";
+        //     echo "<a href='{$row['Picture']}' target='_blank' class='view-link'>View Full Size</a>";
+        //     echo "</div>";
+        //     echo "</div>";
+        // }
+
         if (!empty($row['Picture'])) {
-            echo "<div class='document-preview'>";
-            echo "<label>Profile Picture:</label>";
-            echo "<div class='image-container'>";
-            echo "<img src='{$row['Picture']}' alt='Profile Picture'>";
-            echo "<a href='{$row['Picture']}' target='_blank' class='view-link'>View Full Size</a>";
-            echo "</div>";
-            echo "</div>";
+            echo '<div class="detail-section">';
+            echo '<h4>Profile Picture</h4>';
+            $imagePath = '../homepage/uploads/images/' . basename($row['Picture']);
+            echo '<div class="document-preview">';
+            echo '<img src="' . htmlspecialchars($imagePath) . '" alt="Profile Picture">';
+            echo '<div class="document-actions">';
+            echo '<a href="' . htmlspecialchars($imagePath) . '" target="_blank" class="view-full-btn">View Full Size</a>';
+            echo '</div>';
+            echo '</div>';
+            echo '</div>'; // end detail-section
         }
+
 
         // CV Link
         if (!empty($row['URL_CV'])) {
+            $cvPath = "../homepage/uploads/cvs/" . basename($row['URL_CV']);
             echo "<div class='detail-group'>";
-            echo "<label>CV:</label> <a href='{$row['URL_CV']}' target='_blank'>View CV</a>";
+            echo "<a href='$cvPath' target='_blank' class='view-cv-btn'>View CV</a>";
             echo "</div>";
         }
+
 
 
         echo "</div>"; // End third column
@@ -93,9 +109,9 @@ if (isset($_GET['id'])) {
             echo "</div>";
         }
 
-        
-        
-            echo '<div style="display: flex; justify-content: flex-end; width: 100%;">
+
+
+        echo '<div style="display: flex; justify-content: flex-end; width: 100%;">
         <button class="btn btn-light" style="margin: 10px;" onclick="closeModal(\'viewApplicationModal\')">Close</button>
       </div>';
 
@@ -110,4 +126,3 @@ if (isset($_GET['id'])) {
 } else {
     echo "<div class='alert'>Invalid request.</div>";
 }
-?>

@@ -62,6 +62,7 @@ if (isset($_GET['id'])) {
         
         // Right column - Document and Comments
         echo '<div class="details-column">';
+        
         if (!empty($row['Image'])) {
             echo '<div class="detail-section">';
             echo '<h4>Certification Document</h4>';

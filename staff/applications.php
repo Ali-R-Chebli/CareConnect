@@ -311,6 +311,62 @@ if ($result) {
         .modal-content {
             width: 50vw;
         }
+
+        .document-preview {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    background: #f9f9f9;
+}
+
+.document-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    display: block;
+    margin: 0 auto;
+    border-radius: 4px;
+}
+
+.document-actions {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.view-full-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #3498db;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+.view-full-btn:hover {
+    background: #2980b9;
+}
+
+.view-cv-btn {
+    display: inline-block;
+    padding: 6px 14px;
+    margin-top: 20px;
+    background-color: #17a2b8;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.view-cv-btn:hover {
+    background-color: #138496;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+
     </style>
 </head>
 

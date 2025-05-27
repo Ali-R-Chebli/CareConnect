@@ -110,12 +110,13 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
                                     // Query to get private requests assigned to this nurse
                                     $query = "SELECT r.*, 
                  a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
-                 GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded
+                 GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded , s.Name AS Type
           FROM request r
           LEFT JOIN address a ON r.AddressID = a.AddressID
           LEFT JOIN patient p ON r.PatientID = p.PatientID
           LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
           LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
+          LEFT JOIN service s ON r.Type = s.ServiceID
           WHERE r.ispublic = 0 AND r.NurseID = ? AND r.RequestStatus = 'pending'
           GROUP BY r.RequestID
           ORDER BY r.Date DESC";

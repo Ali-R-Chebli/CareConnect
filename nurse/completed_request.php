@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_id'])) {
     $requestId = $_POST['request_id'];
 
     // Update the request's status to 'rejected' and save the decline reason
-    $query = "UPDATE request SET RequestStatus = 'confirmed' WHERE RequestID = ?";
+    $query = "UPDATE request SET RequestStatus = 'completed' WHERE RequestID = ?";
     
     if ($stmt = $conn->prepare($query)) {
         $stmt->bind_param("s",  $requestId);

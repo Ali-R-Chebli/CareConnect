@@ -125,8 +125,8 @@ if (!isset($_SESSION['nurse_id'])) {
 // Handle single schedule form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_schedule'])) {
     $date = $_POST['date'];
-    $start_time = $_POST['start_time'];
-    $end_time = $_POST['end_time'];
+    $start_time = $_POST['start_time'] ? $_POST['start_time'] :  "" ;
+    $end_time = $_POST['end_time'] ? $_POST['end_time'] : "" ;
     $status = $_POST['status'];
     $notes = $_POST['notes'];
 
@@ -476,11 +476,11 @@ if ($weekly_row = $weekly_result->fetch_assoc()) {
                                 </div>
                                 <div class="col-md-3">
                                     <label for="start_time" class="form-label">Start Time</label>
-                                    <input type="time" class="form-control" id="start_time" name="start_time" required>
+                                    <input type="time" class="form-control" id="start_time" name="start_time" >
                                 </div>
                                 <div class="col-md-3">
                                     <label for="end_time" class="form-label">End Time</label>
-                                    <input type="time" class="form-control" id="end_time" name="end_time" required>
+                                    <input type="time" class="form-control" id="end_time" name="end_time" >
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -541,11 +541,11 @@ if ($weekly_row = $weekly_result->fetch_assoc()) {
                                 </div>
                                 <div class="col-md-3">
                                     <label for="weekly_start_time" class="form-label">Start Time</label>
-                                    <input type="time" class="form-control" id="weekly_start_time" name="weekly_start_time" required>
+                                    <input type="time" class="form-control" id="weekly_start_time" name="weekly_start_time" >
                                 </div>
                                 <div class="col-md-3">
                                     <label for="weekly_end_time" class="form-label">End Time</label>
-                                    <input type="time" class="form-control" id="weekly_end_time" name="weekly_end_time" required>
+                                    <input type="time" class="form-control" id="weekly_end_time" name="weekly_end_time" >
                                 </div>
                             </div>
                             <div class="modal-footer">

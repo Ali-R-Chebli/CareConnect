@@ -42,12 +42,21 @@ function isNurseAvailable($conn, $nurseId, $requestDate)
 function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
 {
     // Main application-based query
-    $query = "SELECT r.Date, r.Time, r.Duration 
+    $query = "SELECT r.Date, r.Time, r.Duration , s.Name AS Type
               FROM request r
               JOIN request_applications ra ON r.RequestID = ra.RequestID
+              JOIN service s ON r.type = s.ServiceID
               WHERE ra.NurseID = ? 
                 AND ra.ApplicationStatus = 'inprocess' 
                 AND r.RequestStatus = 'inprocess'";
+
+
+    // $query = "SELECT r.Date, r.Time, r.Duration 
+    //           FROM request r
+    //           JOIN request_applications ra ON r.RequestID = ra.RequestID
+    //           WHERE ra.NurseID = ? 
+    //             AND ra.ApplicationStatus = 'inprocess' 
+    //             AND r.RequestStatus = 'inprocess'";
 
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $nurseId);
@@ -128,11 +137,12 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
                                     // Query to get public requests (those without assigned nurses)
                                     $query = "SELECT r.*, 
                  a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
-                 GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded
+                 GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded , s.Name AS Type
           FROM request r
           LEFT JOIN address a ON r.AddressID = a.AddressID
           LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
           LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
+          LEFT JOIN service s ON r.Type = s.ServiceID
           WHERE r.NurseID IS NULL AND r.RequestStatus = 'pending'
           GROUP BY r.RequestID
           ORDER BY r.Date DESC";

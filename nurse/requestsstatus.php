@@ -92,8 +92,9 @@ function getNurseRequests($nurse_id, $status, $conn)
 
 
         // Private requests (assigned directly to the nurse)
-        $private_query = "SELECT r.* FROM request r
-                          WHERE r.NurseID = ? AND r.RequestStatus = 'inprocess'";
+        $private_query = "SELECT r.* , s.Name AS Type
+                          FROM request r , service s
+                          WHERE r.NurseID = ? AND r.RequestStatus = 'inprocess' AND r.Type = s.ServiceID";
         $stmt = $conn->prepare($private_query);
         $stmt->bind_param("i", $nurse_id);
         $stmt->execute();
@@ -105,12 +106,13 @@ function getNurseRequests($nurse_id, $status, $conn)
         $public_query = "SELECT 
         r.*, 
         a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
-        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded
+        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded , s.Name AS Type
     FROM request r
     JOIN request_applications ra ON r.RequestID = ra.RequestID
     LEFT JOIN address a ON r.AddressID = a.AddressID
     LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
     LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
+    LEFT JOIN service s ON r.Type = s.ServiceID
     WHERE ra.NurseID = ? 
       AND ra.ApplicationStatus = 'accepted' 
       AND r.RequestStatus = 'inprocess'
@@ -131,8 +133,9 @@ function getNurseRequests($nurse_id, $status, $conn)
     // Case 2: Pending Requests
     elseif ($status === 'pending') {
         // Private requests (assigned directly to the nurse)
-        $private_query = "SELECT r.* FROM request r
-                          WHERE r.NurseID = ? AND r.RequestStatus = 'pending' ";
+        $private_query = "SELECT r.* , s.Name AS Type
+                          FROM request r , service s 
+                          WHERE r.NurseID = ? AND r.RequestStatus = 'pending' AND r.Type = s.ServiceID";
 
         $stmt = $conn->prepare($private_query);
         $stmt->bind_param("i", $nurse_id);
@@ -151,12 +154,13 @@ function getNurseRequests($nurse_id, $status, $conn)
 
         $public_query = "SELECT r.*, 
                         a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
-                        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded
+                        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded , s.Name AS Type
                  FROM request r
                  JOIN request_applications ra ON r.RequestID = ra.RequestID
                  LEFT JOIN address a ON r.AddressID = a.AddressID
                  LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
                  LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
+                 LEFT JOIN service s ON r.Type = s.ServiceID
                  WHERE ra.NurseID = ? 
                    AND ra.ApplicationStatus = 'pending' 
                    AND r.RequestStatus = 'pending'
@@ -171,11 +175,12 @@ function getNurseRequests($nurse_id, $status, $conn)
             $requests[] = $row;
         }
     }
-    // Case 3: Confirmed Requests
-    elseif ($status === 'confirmed') {
+    // Case 3: completed Requests
+    elseif ($status === 'completed') {
         // Private requests (assigned directly to the nurse)
-        $private_query = "SELECT r.* FROM request r
-                          WHERE r.NurseID = ? AND r.RequestStatus = 'confirmed'";
+        $private_query = "SELECT r.* , s.Name AS Type
+                          FROM request r , service s 
+                          WHERE r.NurseID = ? AND r.RequestStatus = 'completed' AND r.Type = s.ServiceID";
         $stmt = $conn->prepare($private_query);
         $stmt->bind_param("i", $nurse_id);
         $stmt->execute();
@@ -184,11 +189,11 @@ function getNurseRequests($nurse_id, $status, $conn)
             $requests[] = $row;
         }
 
-        // Public requests (nurse applied and confirmed)
+        // Public requests (nurse applied and completed)
         // $public_query = "SELECT r.* FROM request r
         //                  JOIN request_applications ra ON r.RequestID = ra.RequestID
         //                  WHERE ra.NurseID = ? AND ra.ApplicationStatus = 'accepted' 
-        //                  AND r.RequestStatus = 'confirmed'";
+        //                  AND r.RequestStatus = 'completed'";
 
 //         $public_query = "
 //     SELECT 
@@ -202,7 +207,7 @@ function getNurseRequests($nurse_id, $status, $conn)
 //     LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
 //     WHERE ra.NurseID = ? 
 //       AND ra.ApplicationStatus = 'accepted' 
-//       AND r.RequestStatus = 'confirmed'
+//       AND r.RequestStatus = 'completed'
 //     GROUP BY r.RequestID
 // ";
 
@@ -210,7 +215,7 @@ $public_query = "
     SELECT 
         r.*, 
         a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
-        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded
+        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded , s.Name AS Type
     FROM request r
     JOIN request_applications ra 
         ON r.RequestID = ra.RequestID 
@@ -219,7 +224,8 @@ $public_query = "
     LEFT JOIN address a ON r.AddressID = a.AddressID
     LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
     LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
-    WHERE r.RequestStatus = 'confirmed'
+    LEFT JOIN service s ON r.Type = s.ServiceID
+    WHERE r.RequestStatus = 'completed'
     GROUP BY r.RequestID
 ";
 
@@ -241,7 +247,7 @@ $public_query = "
 // Get requests for each tab
 $current_work = getNurseRequests($nurse_id, 'inprocess', $conn);
 $waiting_requests = getNurseRequests($nurse_id, 'pending', $conn);
-$completed_requests = getNurseRequests($nurse_id, 'confirmed', $conn);
+$completed_requests = getNurseRequests($nurse_id, 'completed', $conn);
 
 // Count for badges
 $waiting_count = count($waiting_requests);

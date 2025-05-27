@@ -2,6 +2,13 @@
 require '../connect.php';
 require 'algorithm.php';
 
+
+// Check database connection
+if (!$conn) {
+    $error = "Database connection failed.";
+    die($error);
+}
+
 // Fetch patient address (hardcoded patient_id = 1)
 $patient_id = 1;
 $sql_patient_address = "SELECT a.City, a.Street, a.Building, a.Latitude, a.Longitude
@@ -38,11 +45,10 @@ $image_base_path = '/patient1/images/';
 $show_nurse_list = false;
 $error = '';
 $form_data = [];
-$nb_nurse_needed = 1; // Default value
-$selected_nurse_ids = []; // Track selected nurse IDs
-$selected_nurse_names = []; // For confirmation modal
+$nb_nurse_needed = 1;
+$selected_nurse_ids = [];
+$selected_nurse_names = [];
 
-// Function to extract form data
 function getFormData($post) {
     $duration = '';
     if (isset($post['duration'])) {
@@ -75,11 +81,9 @@ function getFormData($post) {
     ];
 }
 
-// Function to insert address and request
 function insertRequest($conn, $form_data, $patient_id, $patient_address, $nurse_id = null) {
     global $error;
 
-    // Check if form address matches patient's existing address
     $address_id = null;
     if (
         !empty($patient_address) &&
@@ -87,7 +91,6 @@ function insertRequest($conn, $form_data, $patient_id, $patient_address, $nurse_
         $form_data['address_street'] === ($patient_address['Street'] ?? '') &&
         $form_data['address_building'] === ($patient_address['Building'] ?? '')
     ) {
-        // Use existing AddressID
         $sql_get_address_id = "SELECT AddressID FROM address WHERE City = '{$form_data['city']}' AND Street = '{$form_data['address_street']}' AND Building = '{$form_data['address_building']}'";
         $result_address = $conn->query($sql_get_address_id);
         if ($result_address && $result_address->num_rows > 0) {
@@ -95,7 +98,6 @@ function insertRequest($conn, $form_data, $patient_id, $patient_address, $nurse_
         }
     }
 
-    // If no matching address found, insert new address
     if (!$address_id) {
         $sql_address = "INSERT INTO address (City, Street, Building) VALUES ('{$form_data['city']}', '{$form_data['address_street']}', '{$form_data['address_building']}')";
         if (!$conn->query($sql_address)) {
@@ -105,20 +107,18 @@ function insertRequest($conn, $form_data, $patient_id, $patient_address, $nurse_
         $address_id = $conn->insert_id;
     }
 
-    // Set ispublic
     $ispublic = ($form_data['request_type'] === 'post') ? 1 : 0;
     $nurse_id_sql = $nurse_id ? "'$nurse_id'" : 'NULL';
 
-    // Insert request
     $sql_request = "INSERT INTO request (
         NurseGender, AgeType, Date, Time, Type, NumberOfNurses, SpecialInstructions, 
         MedicalCondition, Duration, NurseStatus, PatientStatus, RequestStatus, 
         ServiceFeePercentage, PatientID, NurseID, AddressID, ispublic
     ) VALUES (
         '{$form_data['gender']}', '{$form_data['age_type']}', '{$form_data['date']}', '{$form_data['time']}', 
-        (SELECT Name FROM service WHERE ServiceID = '{$form_data['service_id']}'), 
+        '{$form_data['service_id']}', 
         '{$form_data['number_of_nurses']}', '{$form_data['instructions']}', '{$form_data['MedicalCondition']}', 
-        '{$form_data['duration']}', 'pending', 'confirmed', 'pending', 10.00, 
+        '{$form_data['duration']}', 'pending', 'completed', 'pending', 10.00, 
         '$patient_id', $nurse_id_sql, '$address_id', '$ispublic'
     )";
     if (!$conn->query($sql_request)) {
@@ -127,13 +127,11 @@ function insertRequest($conn, $form_data, $patient_id, $patient_address, $nurse_
     }
     $request_id = $conn->insert_id;
 
-    // Validate care_needed
     if (empty($form_data['care_needed'])) {
         $error = "At least one type of care must be selected.";
         return false;
     }
 
-    // Insert care_needed into request_care_needed
     foreach (explode(', ', $form_data['care_needed']) as $care_name) {
         $sql_care_id = "SELECT CareID FROM care_needed WHERE Name = '$care_name'";
         $result_care_id = $conn->query($sql_care_id);
@@ -153,22 +151,18 @@ function insertRequest($conn, $form_data, $patient_id, $patient_address, $nurse_
     return true;
 }
 
-// Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form_data = getFormData($_POST);
 
-    // Capture number of nurses
     $nb_nurse_needed = isset($form_data['number_of_nurses']) && is_numeric($form_data['number_of_nurses']) 
         ? intval($form_data['number_of_nurses']) 
         : 1;
 
-    // Load previously selected nurses
     if (isset($_POST['selected_nurse_ids'])) {
         $selected_nurse_ids = array_filter(explode(',', $_POST['selected_nurse_ids']), 'is_numeric');
     }
 
     if (isset($_POST['submit_form'])) {
-        // Validate required fields
         $required_fields = ['service_id', 'date', 'time', 'number_of_nurses', 'address_street', 'address_building', 'city', 'request_type'];
         $missing_field = false;
         foreach ($required_fields as $field) {
@@ -178,7 +172,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             }
         }
-    
+
+        if (!$missing_field && !empty($form_data['date'])) {
+            $today = date('Y-m-d');
+            if ($form_data['date'] < $today) {
+                $error = "Selected date cannot be in the past.";
+                $missing_field = true;
+            }
+        }
+
         if (!$missing_field && !empty($form_data['care_needed'])) {
             if ($form_data['request_type'] === 'post') {
                 if (insertRequest($conn, $form_data, $patient_id, $patient_address)) {
@@ -272,21 +274,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $selected_nurse_ids = [];
     }
 
-    if (isset($_POST['confirm_request']) && count($selected_nurse_ids) >= 1) {
-        foreach ($selected_nurse_ids as $nurse_id) {
-            if (!insertRequest($conn, $form_data, $patient_id, $patient_address, $nurse_id)) {
-                $error = "Failed to submit request for one or more nurses.";
-                $show_nurse_list = true;
-                break;
+    if (isset($_POST['confirm_request']) && !empty($selected_nurse_ids)) {
+        $success = true;
+        $conn->query("BEGIN");
+        try {
+            foreach ($selected_nurse_ids as $nurse_id) {
+                if (!insertRequest($conn, $form_data, $patient_id, $patient_address, $nurse_id)) {
+                    $success = false;
+                    $error = "Failed to insert request for nurse ID: $nurse_id. Error: " . $conn->error;
+                    break;
+                }
             }
-        }
-        if (empty($error)) {
-            header("Location: my_requests.php");
-            exit;
+if ($success) {
+    $conn->commit();
+    if ($is_public == 1) {
+        header("Location: manage_posted_requests.php?success=1");
+    } else {
+        header("Location: my_requests.php?success=1");
+    }
+    exit;
+}
+        } catch (Exception $e) {
+            $conn->rollback();
+            $error = "Transaction failed: " . htmlspecialchars($e->getMessage());
+            $show_nurse_list = true;
         }
     }
 
-    // Fetch names of selected nurses for the confirmation modal
     if (!empty($selected_nurse_ids)) {
         $nurse_ids_sql = implode(',', array_map('intval', $selected_nurse_ids));
         $sql_nurse_names = "SELECT n.NurseID, u.FullName
@@ -438,7 +452,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         </div>
                                     <?php endif; ?>
                                     <?php if (count($selected_nurse_ids) >= 1): ?>
-                                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmSelectionModal">Confirm Selection</button>
+                                        <button type="button" id="confirmSelectionButton" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmSelectionModal">Confirm Selection</button>
                                     <?php endif; ?>
                                 <?php else: ?>
                                     <form id="serviceRequestForm" method="POST" action="request_service.php" name="submit_form">
@@ -458,8 +472,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label fw-bold">Preferred Date <span class="text-danger">*</span></label>
-                                                    <input type="date" class="form-control" name="date" id="date" value="<?php echo isset($form_data['date']) ? htmlspecialchars($form_data['date']) : ''; ?>" required>
-                                                    <div class="invalid-feedback">Please select a preferred date.</div>
+                                                    <input type="date" class="form-control" name="date" id="date" min="<?php echo date('Y-m-d'); ?>" value="<?php echo isset($form_data['date']) ? htmlspecialchars($form_data['date']) : ''; ?>" required>
+                                                    <div class="invalid-feedback">Please select a date that is today or in the future.</div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label fw-bold">Preferred Time <span class="text-danger">*</span></label>
@@ -591,148 +605,122 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <?php if ($selected_nurse): ?>
-                        <div class="row">
-                            <div class="col-md-4 text-center">
-                                <img src="<?php echo htmlspecialchars($selected_nurse['Picture']); ?>" class="rounded-circle mb-3" width="150" alt="Nurse Photo">
-                                <h4><?php echo htmlspecialchars($selected_nurse['FullName']); ?></h4>
-                                <p class="text-muted"><?php echo htmlspecialchars($selected_nurse['Specialization'] ?? 'General Nurse'); ?></p>
-                                <div class="mb-3">
-                                    <?php
-                                    $rating = isset($selected_nurse['AvgRating']) && $selected_nurse['AvgRating'] !== null ? round($selected_nurse['AvgRating'], 1) : 0;
-                                    for ($i = 1; $i <= 5; $i++) {
-                                        if ($i <= floor($rating)) {
-                                            echo '<i class="fas fa-star text-warning"></i>';
-                                        } elseif ($i == ceil($rating) && $rating - floor($rating) > 0) {
-                                            echo '<i class="fas fa-star-half-alt text-warning"></i>';
-                                        } else {
-                                            echo '<i class="far fa-star text-warning"></i>';
-                                        }
+                    <div class="row">
+                        <div class="col-md-4 mb-3 text-center">
+                            <img src="<?php echo htmlspecialchars($selected_nurse['Picture'] ?? '/patient1/images/default_nurse.jpg'); ?>" class="rounded-circle mb-3" width="150" alt="Nurse Photo">
+                            <h4><?php echo htmlspecialchars($selected_nurse['FullName'] ?? 'Unknown'); ?></h4>
+                            <p class="text-muted"><?php echo htmlspecialchars($selected_nurse['Specialization'] ?? 'General Nurse'); ?></p>
+                            <div class="mb-3">
+                                <?php
+                                $rating = isset($selected_nurse['AvgRating']) && $selected_nurse['AvgRating'] !== null ? round($selected_nurse['AvgRating'], 1) : 0;
+                                for ($i = 1; $i <= 5; $i++) {
+                                    if ($i <= floor($rating)) {
+                                        echo '<i class="fas fa-star text-warning"></i>';
+                                    } elseif ($i == ceil($rating) && $rating - floor($rating) > 0) {
+                                        echo '<i class="fas fa-star-half-alt text-warning"></i>';
+                                    } else {
+                                        echo '<i class="far fa-star text-warning"></i>';
                                     }
-                                    ?>
-                                    <small class="text-muted"><?php echo $rating . ' (' . (isset($selected_nurse['ReviewCount']) ? $selected_nurse['ReviewCount'] : 0) . ' reviews)'; ?></small>
-                                </div>
+                                }
+                                ?>
+                                <small class="text-muted"><?php echo $rating . ' (' . (isset($selected_nurse['ReviewCount']) ? $selected_nurse['ReviewCount'] : 0) . ' reviews)'; ?></small>
                             </div>
-                            <div class="col-md-8">
-                                <ul class="nav nav-tabs" id="nurseProfileTabs">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" data-bs-toggle="tab" href="#profile">Details</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" data-bs-toggle="tab" href="#schedule">Schedule</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" data-bs-toggle="tab" href="#certification">Certifications</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" data-bs-toggle="tab" href="#pricing">Pricing</a>
-                                    </li>
-                                </ul>
-                                <div class="tab-content p-3 border border-top-0 rounded-bottom">
-                                    <div class="tab-pane fade show active" id="profile">
+                        </div>
+                        <div class="col-md-8">
+                            <ul class="nav nav-tabs" id="nurseProfileTabs">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-bs-toggle="tab" href="#profile">Details</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#schedule">Schedule</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#certificate">Certifications</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#pricing">Pricing</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content p-3 border border-top-0 rounded-bottom">
+                                <div class="tab-pane fade show active" id="profile">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <p><strong>Age:</strong> <?php echo htmlspecialchars($selected_nurse['Age'] ?? 'Unknown'); ?></p>
+                                            <p><strong>Gender:</strong> <?php echo htmlspecialchars($selected_nurse['Gender'] ?? 'Unknown'); ?></p>
+                                            <p><strong>Languages:</strong> <?php echo htmlspecialchars($selected_nurse['Language'] ?? 'Unknown'); ?></p>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <p><strong>Location:</strong> <?php echo htmlspecialchars($selected_nurse['Location'] ?? 'Unknown'); ?></p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <h6>About</h6>
+                                    <p><?php echo htmlspecialchars($selected_nurse['Bio'] ?? 'No bio available.'); ?></p>
+                                </div>
+                                <div class="tab-pane fade" id="schedule">
+                                    <div class="alert alert-info small">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Green indicates available time slots
+                                    </div>
+                                    <?php if (empty($schedule)): ?>
+                                        <p class="text-muted">No schedule available.</p>
+                                    <?php else: ?>
+                                        <ul class="list-group">
+                                            <?php foreach ($schedule as $slot): ?>
+                                                <li class="list-group-item">
+                                                    <strong><?php echo htmlspecialchars($slot['Date']); ?>:</strong>
+                                                    <?php echo htmlspecialchars($slot['StartTime'] . ' - ' . $slot['EndTime']); ?>
+                                                    <?php if ($slot['Notes']): ?>
+                                                        <small class="text-muted">(<?php echo htmlspecialchars($slot['Notes']); ?>)</small>
+                                                    <?php endif; ?>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="tab-pane fade" id="certificate">
+                                    <?php if (empty($certifications)): ?>
+                                        <p class="text-muted">No certifications available.</p>
+                                    <?php else: ?>
                                         <div class="row">
-                                            <div class="col-sm-6">
-                                                <p><strong>Age:</strong> <?php echo htmlspecialchars($selected_nurse['Age'] ?? 'Unknown'); ?></p>
-                                                <p><strong>Gender:</strong> <?php echo htmlspecialchars($selected_nurse['Gender'] ?? 'Unknown'); ?></p>
-                                                <p><strong>Languages:</strong> <?php echo htmlspecialchars($selected_nurse['Language'] ?? 'Unknown'); ?></p>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <p><strong>Location:</strong> <?php echo htmlspecialchars($selected_nurse['Location'] ?? 'Unknown'); ?></p>
-                                            </div>
-                                        </div>
-                                        <hr>
-                                        <h6>About</h6>
-                                        <p><?php echo htmlspecialchars($selected_nurse['Bio'] ?? 'No bio available.'); ?></p>
-                                    </div>
-                                    <div class="tab-pane fade" id="schedule">
-                                        <div class="alert alert-info small">
-                                            <i class="fas fa-info-circle me-2"></i>
-                                            Green indicates available time slots
-                                        </div>
-                                        <?php if (empty($schedule)): ?>
-                                            <p class="text-muted">No schedule available.</p>
-                                        <?php else: ?>
-                                            <ul class="list-group">
-                                                <?php foreach ($schedule as $slot): ?>
-                                                    <li class="list-group-item">
-                                                        <strong><?php echo htmlspecialchars($slot['Date']); ?>:</strong>
-                                                        <?php echo htmlspecialchars($slot['StartTime'] . ' - ' . $slot['EndTime']); ?>
-                                                        <?php if ($slot['Notes']): ?>
-                                                            <small class="text-muted">(<?php echo htmlspecialchars($slot['Notes']); ?>)</small>
-                                                        <?php endif; ?>
-                                                    </li>
-                                                <?php endforeach; ?>
-                                            </ul>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="tab-pane fade" id="certification">
-                                        <?php if (empty($certifications)): ?>
-                                            <p class="text-muted">No certifications available.</p>
-                                        <?php else: ?>
-                                            <div class="row">
-                                                <?php foreach ($certifications as $cert): ?>
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="card h-100">
-                                                            <div class="card-body">
-                                                                <h6 class="card-title"><?php echo htmlspecialchars($cert['Name']); ?></h6>
-                                                                <?php if ($cert['Image']): ?>
-                                                                    <img src="<?php echo htmlspecialchars($cert['Image']); ?>" class="img-fluid mb-2" alt="Certification" style="max-width: 100px;">
-                                                                <?php endif; ?>
-                                                                <p class="small text-muted"><?php echo htmlspecialchars($cert['Comment'] ?: 'No additional comments.'); ?></p>
-                                                            </div>
+                                            <?php foreach ($certifications as $cert): ?>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="card h-100">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title"><?php echo htmlspecialchars($cert['Name']); ?></h6>
+                                                            <?php if ($cert['Image']): ?>
+                                                                <img src="<?php echo htmlspecialchars($cert['Image']); ?>" class="img-fluid mb-2" alt="Certification" style="max-width: 100px;">
+                                                            <?php endif; ?>
+                                                            <p class="small text-muted"><?php echo htmlspecialchars($cert['Comment'] ?: 'No additional comments.'); ?></p>
                                                         </div>
                                                     </div>
-                                                <?php endforeach; ?>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="tab-pane fade" id="pricing">
-                                        <?php if (empty($prices)): ?>
-                                            <p class="text-muted">No pricing information available.</p>
-                                        <?php else: ?>
-                                            <ul class="list-group">
-                                                <?php foreach ($prices as $price): ?>
-                                                    <li class="list-group-item">
-                                                        <strong><?php echo htmlspecialchars($price['Name']); ?>:</strong>
-                                                        $<?php echo htmlspecialchars($price['Price']); ?>
-                                                    </li>
-                                                <?php endforeach; ?>
-                                            </ul>
-                                        <?php endif; ?>
-                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="tab-pane fade" id="pricing">
+                                    <?php if (empty($prices)): ?>
+                                        <p class="text-muted">No pricing information available.</p>
+                                    <?php else: ?>
+                                        <ul class="list-group">
+                                            <?php foreach ($prices as $price): ?>
+                                                <li class="list-group-item">
+                                                    <strong><?php echo htmlspecialchars($price['Name']); ?>:</strong>
+                                                    $<?php echo htmlspecialchars($price['Price']); ?>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                    <?php else: ?>
-                        <div class="alert alert-warning">
-                            No nurse selected. Please choose a nurse to view their profile.
-                        </div>
-                    <?php endif; ?>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <?php if ($selected_nurse): ?>
-                        <?php if (in_array($selected_nurse['NurseID'], $selected_nurse_ids)): ?>
-                            <form action="request_service.php" method="POST">
-                                <input type="hidden" name="remove_nurse_id" value="<?php echo htmlspecialchars($selected_nurse['NurseID']); ?>">
-                                <input type="hidden" name="selected_nurse_ids" value="<?php echo htmlspecialchars(implode(',', $selected_nurse_ids)); ?>">
-                                <input type="hidden" name="form_service_id" value="<?php echo htmlspecialchars($form_data['service_id']); ?>">
-                                <input type="hidden" name="form_date" value="<?php echo htmlspecialchars($form_data['date']); ?>">
-                                <input type="hidden" name="form_time" value="<?php echo htmlspecialchars($form_data['time']); ?>">
-                                <input type="hidden" name="form_number_of_nurses" value="<?php echo htmlspecialchars($form_data['number_of_nurses']); ?>">
-                                <input type="hidden" name="form_gender" value="<?php echo htmlspecialchars($form_data['gender']); ?>">
-                                <input type="hidden" name="form_age_type" value="<?php echo htmlspecialchars($form_data['age_type']); ?>">
-                                <input type="hidden" name="form_care_needed" value="<?php echo htmlspecialchars($form_data['care_needed']); ?>">
-                                <input type="hidden" name="form_address_street" value="<?php echo htmlspecialchars($form_data['address_street']); ?>">
-                                <input type="hidden" name="form_address_building" value="<?php echo htmlspecialchars($form_data['address_building']); ?>">
-                                <input type="hidden" name="form_city" value="<?php echo htmlspecialchars($form_data['city']); ?>">
-                                <input type="hidden" name="form_MedicalCondition" value="<?php echo htmlspecialchars($form_data['MedicalCondition']); ?>">
-                                <input type="hidden" name="form_duration" value="<?php echo htmlspecialchars($form_data['duration']); ?>">
-                                <input type="hidden" name="form_instructions" value="<?php echo htmlspecialchars($form_data['instructions']); ?>">
-                                <input type="hidden" name="form_request_type" value="<?php echo htmlspecialchars($form_data['request_type']); ?>">
-                                <button type="submit" class="btn btn-danger" name="remove_nurse">Remove</button>
-                            </form>
-                        <?php else: ?>
+                        <?php if (!in_array($selected_nurse['NurseID'], $selected_nurse_ids)): ?>
                             <form action="request_service.php" method="POST">
                                 <input type="hidden" name="nurse_id" value="<?php echo htmlspecialchars($selected_nurse['NurseID']); ?>">
                                 <input type="hidden" name="selected_nurse_ids" value="<?php echo htmlspecialchars(implode(',', $selected_nurse_ids)); ?>">
@@ -750,7 +738,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="hidden" name="form_duration" value="<?php echo htmlspecialchars($form_data['duration']); ?>">
                                 <input type="hidden" name="form_instructions" value="<?php echo htmlspecialchars($form_data['instructions']); ?>">
                                 <input type="hidden" name="form_request_type" value="<?php echo htmlspecialchars($form_data['request_type']); ?>">
-                                <button type="submit" class="btn btn-primary" name="select_nurse_for_request" <?php echo count($selected_nurse_ids) >= $nb_nurse_needed ? 'disabled' : ''; ?>>Select</button>
+                                <button type="submit" class="btn btn-success" name="select_nurse_for_request" <?php echo count($selected_nurse_ids) >= $nb_nurse_needed ? 'disabled' : ''; ?>>Select</button>
                             </form>
                         <?php endif; ?>
                     <?php endif; ?>
@@ -759,59 +747,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <div class="modal fade" id="confirmSelectionModal" tabindex="-1" aria-labelledby="confirmSelectionModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmSelectionModalLabel">Confirm Nurse Selection</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to request services from the following nurses?</p>
-                    <ul>
-                        <?php foreach ($selected_nurse_ids as $nurse_id): ?>
-                            <li><?php echo htmlspecialchars($selected_nurse_names[$nurse_id] ?? 'Unknown Nurse'); ?></li>
+    <div class="modal fade" id="confirmSelectionModal" tabindex="-1" role="dialog" aria-labelledby="confirmSelectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmSelectionModalLabel">Confirm Nurse Selection</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to request services from the following nurses?</p>
+                <?php if (!empty($selected_nurse_names)): ?>
+                    <ul class="list-group">
+                        <?php foreach ($selected_nurse_names as $nurse_id => $name): ?>
+                            <li class="list-group-item"><?php echo htmlspecialchars($name); ?></li>
                         <?php endforeach; ?>
                     </ul>
-                    <?php if (count($selected_nurse_ids) < $nb_nurse_needed): ?>
-                        <p class="text-warning">Note: You have selected <?php echo count($selected_nurse_ids); ?> out of <?php echo $nb_nurse_needed; ?> requested nurses.</p>
-                    <?php endif; ?>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form action="request_service.php" method="POST">
-                        <input type="hidden" name="selected_nurse_ids" value="<?php echo htmlspecialchars(implode(',', $selected_nurse_ids)); ?>">
-                        <input type="hidden" name="form_service_id" value="<?php echo htmlspecialchars($form_data['service_id']); ?>">
-                        <input type="hidden" name="form_date" value="<?php echo htmlspecialchars($form_data['date']); ?>">
-                        <input type="hidden" name="form_time" value="<?php echo htmlspecialchars($form_data['time']); ?>">
-                        <input type="hidden" name="form_number_of_nurses" value="<?php echo htmlspecialchars($form_data['number_of_nurses']); ?>">
-                        <input type="hidden" name="form_gender" value="<?php echo htmlspecialchars($form_data['gender']); ?>">
-                        <input type="hidden" name="form_age_type" value="<?php echo htmlspecialchars($form_data['age_type']); ?>">
-                        <input type="hidden" name="form_care_needed" value="<?php echo htmlspecialchars($form_data['care_needed']); ?>">
-                        <input type="hidden" name="form_address_street" value="<?php echo htmlspecialchars($form_data['address_street']); ?>">
-                        <input type="hidden" name="form_address_building" value="<?php echo htmlspecialchars($form_data['address_building']); ?>">
-                        <input type="hidden" name="form_city" value="<?php echo htmlspecialchars($form_data['city']); ?>">
-                        <input type="hidden" name="form_MedicalCondition" value="<?php echo htmlspecialchars($form_data['MedicalCondition']); ?>">
-                        <input type="hidden" name="form_duration" value="<?php echo htmlspecialchars($form_data['duration']); ?>">
-                        <input type="hidden" name="form_instructions" value="<?php echo htmlspecialchars($form_data['instructions']); ?>">
-                        <input type="hidden" name="form_request_type" value="<?php echo htmlspecialchars($form_data['request_type']); ?>">
-                        <button type="submit" class="btn btn-primary" name="confirm_request">Confirm</button>
-                    </form>
-                </div>
+                <?php else: ?>
+                    <p class="text-warning">No nurses selected.</p>
+                <?php endif; ?>
+                <?php if (count($selected_nurse_ids) < $nb_nurse_needed): ?>
+                    <p class="text-warning mt-3">Note: You have selected <?php echo count($selected_nurse_ids); ?> out of <?php echo htmlspecialchars($nb_nurse_needed); ?> requested nurses.</p>
+                <?php endif; ?>
             </div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="document.getElementById('confirmSelectionModal').classList.remove('show');document.getElementById('confirmSelectionModal').style.display='none';document.body.classList.remove('modal-open');document.querySelector('.modal-backdrop')?.remove();">Cancel</button>
+    <?php if (!empty($selected_nurse_ids)): ?>
+        <form action="request_service.php" method="POST">
+            <input type="hidden" name="selected_nurse_ids" value="<?php echo htmlspecialchars(implode(',', $selected_nurse_ids)); ?>">
+            <input type="hidden" name="form_service_id" value="<?php echo htmlspecialchars($form_data['service_id']); ?>">
+            <input type="hidden" name="form_date" value="<?php echo htmlspecialchars($form_data['date']); ?>">
+            <input type="hidden" name="form_time" value="<?php echo htmlspecialchars($form_data['time']); ?>">
+            <input type="hidden" name="form_number_of_nurses" value="<?php echo htmlspecialchars($form_data['number_of_nurses']); ?>">
+            <input type="hidden" name="form_gender" value="<?php echo htmlspecialchars($form_data['gender']); ?>">
+            <input type="hidden" name="form_age_type" value="<?php echo htmlspecialchars($form_data['age_type']); ?>">
+            <input type="hidden" name="form_care_needed" value="<?php echo htmlspecialchars($form_data['care_needed']); ?>">
+            <input type="hidden" name="form_address_street" value="<?php echo htmlspecialchars($form_data['address_street']); ?>">
+            <input type="hidden" name="form_address_building" value="<?php echo htmlspecialchars($form_data['address_building']); ?>">
+            <input type="hidden" name="form_city" value="<?php echo htmlspecialchars($form_data['city']); ?>">
+            <input type="hidden" name="form_MedicalCondition" value="<?php echo htmlspecialchars($form_data['MedicalCondition']); ?>">
+            <input type="hidden" name="form_duration" value="<?php echo htmlspecialchars($form_data['duration']); ?>">
+            <input type="hidden" name="form_instructions" value="<?php echo htmlspecialchars($form_data['instructions']); ?>">
+            <input type="hidden" name="form_request_type" value="<?php echo htmlspecialchars($form_data['request_type']); ?>">
+            <button type="submit" class="btn btn-primary" name="confirm_request">Confirm</button>
+        </form>
+    <?php endif; ?>
+</div>
         </div>
     </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/patient.js"></script>
-    <script>
-document.addEventListener('DOMContentLoaded', function () {
+<script>
+document.addEventListener('DOMContentLoaded', function() {
     // Duration select handling
     const durationSelect = document.getElementById('durationSelect');
     const customDuration = document.getElementById('customDuration');
     if (durationSelect && customDuration) {
-        durationSelect.addEventListener('change', function () {
-            if (this.value === 'Custom') {
+        durationSelect.addEventListener('change', function() {
+            if (durationSelect.value === 'Custom') {
                 customDuration.style.display = 'block';
                 customDuration.required = true;
             } else {
@@ -824,20 +818,35 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Detect address button
-    document.getElementById('detectAddressBtn')?.addEventListener('click', function () {
-        document.getElementById('city').value = '<?php echo htmlspecialchars($patient_address['City'] ?? ''); ?>';
-        document.getElementById('addressStreet').value = '<?php echo htmlspecialchars($patient_address['Street'] ?? ''); ?>';
-        document.getElementById('addressBuilding').value = '<?php echo htmlspecialchars($patient_address['Building'] ?? ''); ?>';
-    });
+    const detectAddressBtn = document.getElementById('detectAddressBtn');
+    if (detectAddressBtn) {
+        detectAddressBtn.addEventListener('click', function() {
+            document.getElementById('city').value = '<?php echo htmlspecialchars($patient_address['City'] ?? ''); ?>';
+            document.getElementById('addressStreet').value = '<?php echo htmlspecialchars($patient_address['Street'] ?? ''); ?>';
+            document.getElementById('addressBuilding').value = '<?php echo htmlspecialchars($patient_address['Building'] ?? ''); ?>';
+        });
+    }
 
     // Nurse profile modal
-    <?php if ($selected_nurse): ?>
-        const profileModal = new bootstrap.Modal(document.getElementById('nurseProfileModal'), {
-            backdrop: 'static',
-            keyboard: false
-        });
+    <?php if (isset($selected_nurse) && $selected_nurse): ?>
+        const profileModal = new bootstrap.Modal(document.getElementById('nurseProfileModal'), { backdrop: true, keyboard: true });
         profileModal.show();
     <?php endif; ?>
+
+    // Confirm selection modal
+    const confirmButton = document.getElementById('confirmSelectionButton');
+    const confirmModalElement = document.getElementById('confirmSelectionModal');
+    if (confirmButton && confirmModalElement) {
+        confirmButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const confirmModal = new bootstrap.Modal(confirmModalElement, { backdrop: true, keyboard: true });
+            confirmModal.show();
+            console.log('Confirm button clicked, modal should open'); // Debugging
+        });
+    } else {
+        console.log('Confirm button or modal not found'); // Debugging
+    }
+    
 });
 </script>
 </body>

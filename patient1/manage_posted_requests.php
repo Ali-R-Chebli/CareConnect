@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_request'])) {
         $selected_count = $result->fetch_assoc()['selected_count'];
 
         // Confirm only if selected_count equals NumberOfNurses
-        if ($selected_count == $number_of_nurses) {
+        if ($selected_count <= $number_of_nurses) {
             // Confirm the request
             $sql = "UPDATE request SET RequestStatus = 'inprocess' 
                     WHERE RequestID = $request_id AND PatientID = $patient_id";
@@ -166,14 +166,15 @@ if (isset($_GET['nurse_id']) && is_numeric($_GET['nurse_id']) && $_GET['nurse_id
 }
 
 // Get all public pending requests 
-$sql = "SELECT r.*, 
+$sql = "SELECT r.*, s.Name AS Type,
        (SELECT COUNT(*) FROM request_applications ra WHERE ra.RequestID = r.RequestID) AS applicant_count,
        (SELECT COUNT(*) FROM request_applications ra WHERE ra.RequestID = r.RequestID AND ra.ApplicationStatus = 'selected') AS selected_count
-       FROM request r
-       WHERE r.PatientID = $patient_id 
-       AND r.RequestStatus = 'pending'
-       AND r.ispublic = 1
-       ORDER BY r.Date DESC";
+FROM request r
+LEFT JOIN service s ON r.Type = s.ServiceID
+WHERE r.PatientID = $patient_id 
+AND r.RequestStatus = 'pending'
+AND r.ispublic = 1
+ORDER BY r.Date DESC";
         
 $result = $conn->query($sql);
 $posted_requests = $result->fetch_all(MYSQLI_ASSOC);
@@ -227,6 +228,13 @@ foreach ($posted_requests as $request) {
             
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
+                    <?php if (isset($_GET['success']) && $_GET['success'] == '1') { ?>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            Request successfully submitted!
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                    <?php } ?>
+
                     <h2 class="h4">Manage Posted Requests</h2>
                     <div>
                         <a href="my_requests.php" class="btn btn-outline-secondary me-2">
@@ -371,10 +379,10 @@ foreach ($posted_requests as $request) {
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>
-                                            <?php if ($request['selected_count'] == $request['NumberOfNurses']): ?>
+                                            <?php if ($request['selected_count'] <= $request['NumberOfNurses']): ?>
                                                 <form method="POST" class="mt-3">
                                                     <input type="hidden" name="request_id" value="<?php echo $request['RequestID']; ?>">
-                                                    <button type="submit" name="confirm_request" class="btn btn-primary btn-lg">
+                                                    <button type="submit" name="confirm_request" class="btn btn-primary btn-sm mb-4">
                                                         <i class="fas fa-check me-1"></i> Confirm Request
                                                     </button>
                                                 </form>

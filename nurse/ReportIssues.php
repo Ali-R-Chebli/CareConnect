@@ -106,24 +106,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-
-
-
-
-
-
 // Fetch all requests related to the nurse
 $nurse_id = $_SESSION['user_id'];
 $requests = [];
 try {
-    $query = "SELECT r.RequestID, CONCAT('#HN-', YEAR(r.Date), '-', LPAD(r.RequestID, 3, '0'), ' - ', r.Type, ' (', DATE_FORMAT(r.Date, '%b %d'), ')') AS request_name, r.Date 
-              FROM request r 
-              WHERE r.NurseID = ?
-              UNION
-              SELECT r.RequestID, CONCAT('#HN-', YEAR(r.Date), '-', LPAD(r.RequestID, 3, '0'), ' - ', r.Type, ' (', DATE_FORMAT(r.Date, '%b %d'), ')') AS request_name, r.Date 
-              FROM request r 
-              JOIN request_applications ra ON r.RequestID = ra.RequestID 
-              WHERE ra.NurseID = ? AND ra.ApplicationStatus IN ('confirmed', 'accepted', 'inprocess')";
+    $query = "SELECT 
+    r.RequestID, 
+    CONCAT('#HN-', YEAR(r.Date), '-', LPAD(r.RequestID, 3, '0'), ' - ', s.Name, ' (', DATE_FORMAT(r.Date, '%b %d'), ')') AS request_name, 
+    r.Date,
+    s.Name AS Type
+FROM 
+    request r
+JOIN 
+    service s ON r.Type = s.ServiceID
+WHERE 
+    r.NurseID = ?
+
+UNION
+
+SELECT 
+    r.RequestID, 
+    CONCAT('#HN-', YEAR(r.Date), '-', LPAD(r.RequestID, 3, '0'), ' - ', s.Name, ' (', DATE_FORMAT(r.Date, '%b %d'), ')') AS request_name, 
+    r.Date,
+    s.Name AS Type
+FROM 
+    request r
+JOIN 
+    request_applications ra ON r.RequestID = ra.RequestID
+JOIN 
+    service s ON r.Type = s.ServiceID
+WHERE 
+    ra.NurseID = ? AND ra.ApplicationStatus IN ('completed', 'accepted', 'inprocess');
+";
+
+
     $stmt = $db->prepare($query);
     $stmt->bind_param("ii", $nurse_id, $nurse_id);
     $stmt->execute();

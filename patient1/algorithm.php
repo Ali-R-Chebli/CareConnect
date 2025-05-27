@@ -1,7 +1,7 @@
 <?php
 function selectBestNurses($conn, $service_id, $patient_gender, $patient_age_type, $patient_lat, $patient_lon) {
     // Step 1: Fetch nurses who offer the service
-    $sql = "SELECT n.NurseID, u.FullName, na.Gender, u.DateOfBirth, na.Picture, na.Specialization, na.Language, a.Latitude, a.Longitude, a.City, a.Street, ns.Price, AVG(r.Rating) AS AvgRating
+    $sql = "SELECT n.NurseID, u.FullName, na.Gender, u.DateOfBirth, na.Specialization, na.Language, a.Latitude, a.Longitude, a.City, a.Street, n.image_path , ns.Price, AVG(r.Rating) AS AvgRating
             FROM nurse n
             JOIN user u ON n.UserID = u.UserID
             JOIN nurseapplication na ON n.NAID = na.NAID
@@ -63,7 +63,7 @@ function selectBestNurses($conn, $service_id, $patient_gender, $patient_age_type
             'Distance' => $distance,
             'Price' => $nurse['Price'],
             'AvgRating' => $nurse['AvgRating'],
-            'Picture' => $nurse['Picture'],
+            'image_path' => $nurse['image_path'],
             'Specialization' => $nurse['Specialization'],
             'Language' => $nurse['Language'],
             'City' => $nurse['City'],

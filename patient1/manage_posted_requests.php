@@ -123,9 +123,9 @@ if (isset($_GET['nurse_id']) && is_numeric($_GET['nurse_id']) && $_GET['nurse_id
     $nurse_id = (int)$_GET['nurse_id'];
     
     // Fetch nurse details
-    $sql = "SELECT u.FullName, u.DateOfBirth, u.PhoneNumber, u.Email,
+    $sql = "SELECT u.FullName, u.DateOfBirth, u.PhoneNumber, n.image_path , u.Email,
                    n.NurseID, n.Bio, n.Availability,
-                   na.Specialization, na.Gender, na.Language, na.Picture,
+                   na.Specialization, na.Gender, na.Language,
                    a.City AS Location,
                    (SELECT AVG(Rating) FROM rating WHERE NurseID = n.NurseID) AS avg_rating,
                    (SELECT COUNT(*) FROM rating WHERE NurseID = n.NurseID) AS rating_count
@@ -185,9 +185,9 @@ $selected_nurses = [];
 foreach ($posted_requests as $request) {
     // Get all applicants (pending and selected)
     $sql = "SELECT ra.*, 
-                   u.FullName, u.PhoneNumber, u.Email, u.DateOfBirth,
+                   u.FullName, u.PhoneNumber, n.image_path , u.Email, u.DateOfBirth,
                    n.NurseID, n.Bio, n.Availability,
-                   na.Specialization, na.Gender, na.Language, na.Picture,
+                   na.Specialization, na.Gender, na.Language, 
                    a.City AS Location,
                    (SELECT AVG(Rating) FROM rating WHERE NurseID = ra.NurseID) AS avg_rating,
                    (SELECT COUNT(*) FROM rating WHERE NurseID = ra.NurseID) AS rating_count,
@@ -343,8 +343,13 @@ foreach ($posted_requests as $request) {
                                                         <div class="card nurse-card h-100">
                                                             <div class="card-body">
                                                                 <div class="d-flex align-items-start mb-3">
-                                                                    <img src="<?php echo htmlspecialchars($nurse['Picture'] ?: 'https://ui-avatars.com/api/?name='.urlencode($nurse['FullName']).'&background=random'); ?>" 
-                                                                         class="rounded-circle profile-img me-3" alt="Nurse">
+
+
+                                                                    <img src="<?php echo !empty($nurse['image_path']) ? "../nurse/" . htmlspecialchars($nurse['image_path']) : '../nurse/uploads/profile_photos/default.png'; ?>"
+                                                                    class="rounded-circle profile-img me-3" width="50" height="50" alt="Nurse">
+
+
+
                                                                     <div>
                                                                         <h5 class="card-title mb-1"><?php echo htmlspecialchars($nurse['FullName']); ?></h5>
                                                                         <p class="text-muted mb-1"><?php echo htmlspecialchars($nurse['Specialization']); ?></p>
@@ -408,8 +413,14 @@ foreach ($posted_requests as $request) {
                                                         <div class="card nurse-card h-100">
                                                             <div class="card-body">
                                                                 <div class="d-flex align-items-start mb-3">
-                                                                    <img src="<?php echo htmlspecialchars($application['Picture'] ?: 'https://ui-avatars.com/api/?name='.urlencode($application['FullName']).'&background=random'); ?>" 
-                                                                         class="rounded-circle profile-img me-3" alt="Nurse">
+
+
+                                
+
+
+                                                                              <img src="<?php echo !empty($application['image_path']) ? "../nurse/" . htmlspecialchars($application['image_path']) : '../nurse/uploads/profile_photos/default.png'; ?>"
+                                                class="rounded-circle profile-img me-3" width="50" height="50" alt="Nurse">
+
                                                                     <div>
                                                                         <h5 class="card-title mb-1"><?php echo htmlspecialchars($application['FullName']); ?></h5>
                                                                         <p class="text-muted mb-1"><?php echo htmlspecialchars($application['Specialization']); ?></p>
@@ -469,9 +480,21 @@ foreach ($posted_requests as $request) {
                             <div class="modal-body">
                                 <?php if ($selected_nurse): ?>
                                     <div class="row">
+
+                                    <!-- here -->
                                         <div class="col-md-4 text-center">
-                                            <img src="<?php echo htmlspecialchars($selected_nurse['Picture'] ?: 'https://ui-avatars.com/api/?name='.urlencode($selected_nurse['FullName']).'&background=random'); ?>" 
-                                                 class="rounded-circle mb-3" width="150" alt="Nurse Photo">
+
+                                         
+                                            
+
+                                                 <img src="<?php echo !empty($selected_nurse['image_path']) ? "../nurse/" . htmlspecialchars($selected_nurse['image_path']) : '../nurse/uploads/profile_photos/default.png'; ?>"
+                                                class="rounded-circle mb-3" width="150" height="150" alt="Nurse">
+
+
+                                            
+
+
+
                                             <h4><?php echo htmlspecialchars($selected_nurse['FullName']); ?></h4>
                                             <p class="text-muted"><?php echo htmlspecialchars($selected_nurse['Specialization'] ?: 'General Nurse'); ?></p>
                                             <div class="mb-3">

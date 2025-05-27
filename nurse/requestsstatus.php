@@ -1,11 +1,11 @@
 <?php
 // Start session and include database connection
 session_start();
-$_SESSION['nurse_id'] = 1; // Example: manually set nurse ID
-$_SESSION['user_type'] = 'nurse';
-$_SESSION['logged_in'] = true;
+// $_SESSION['nurse_id'] = 1; 
+// $_SESSION['user_type'] = 'nurse';
+// $_SESSION['logged_in'] = true;
 
-$nurse_id = $_SESSION['nurse_id'];
+$nurse_id = $_SESSION['user_id'];
 
 require_once 'db_connection.php';
 

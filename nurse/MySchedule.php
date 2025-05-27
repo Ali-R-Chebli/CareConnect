@@ -1,13 +1,11 @@
 <?php
 // Start session and include database connection
 session_start();
-$_SESSION['nurse_id'] = 1; // Example: manually set nurse ID
-$_SESSION['user_type'] = 'nurse';
 $_SESSION['logged_in'] = true;
 
 require_once 'db_connection.php';
 
-$nurse_id = $_SESSION['nurse_id'];
+$nurse_id = $_SESSION['user_id'];
 
 
 // Handle Delete Schedule
@@ -117,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_weekly_schedule'])
 }
 
 // Check if nurse is logged in
-if (!isset($_SESSION['nurse_id'])) {
+if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }

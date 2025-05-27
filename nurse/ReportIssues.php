@@ -1,9 +1,9 @@
 <?php
 session_start();
 // Manually set session variables as provided
-$_SESSION['user_id'] = 1; // Example: manually set nurse ID
-$_SESSION['user_type'] = 'nurse';
-$_SESSION['logged_in'] = true;
+// $_SESSION['user_id'] = 1; 
+$_SESSION['role'] = 'nurse';
+// $_SESSION['logged_in'] = true;
 
 // Database connection (adjust credentials as needed)
 $db_host = '127.0.0.1';
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->bind_param(
                         "isissss",
                         $_SESSION['user_id'],
-                        $_SESSION['user_type'],
+                        $_SESSION['role'],
                         $reported_id,
                         $reported_role,
                         $file_name,
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $db->prepare("INSERT INTO report (ReporterID, ReporterRole, ReportedID, ReportedRole, RequestID, File, Type, Description, Status, Date) 
                                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', CURDATE())");
 
-                    $stmt->bind_param("isssisss", $_SESSION['user_id'], $_SESSION['user_type'], $reported_id, $reported_role, $request_id, $file_name, $type, $description);
+                    $stmt->bind_param("isssisss", $_SESSION['user_id'], $_SESSION['role'], $reported_id, $reported_role, $request_id, $file_name, $type, $description);
                     // insert report with request id
                 }
 

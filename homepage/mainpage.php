@@ -10,7 +10,7 @@ $nurse_application_message = '';
 // Handle Login
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     $email = trim($_POST['email']);
-    $password = trim($_POST['password']);   
+    $password = trim($_POST['password']);
     $role = $_POST['role']; // patient, nurse, or staff
 
     // Validate inputs
@@ -28,27 +28,57 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
             // Verify password (assuming passwords are hashed)
             if (password_verify($password, $user['Password'])) {
-                // Password is correct, set session variables
-                $_SESSION['user_id'] = $user['UserID'];
-                $_SESSION['email'] = $user['Email'];
-                $_SESSION['role'] = $user['Role'];
-                $_SESSION['full_name'] = $user['FullName'];
 
-                // Redirect based on role
-                switch ($user['Role']) {
-                    case 'patient':
-                        header("Location: ../patient1/request_service.php");
-                        exit();
-                    case 'nurse':
-                        header("Location: ../nurse/publicrequests.php");
-                        exit();
-                    case 'staff':
-                    case 'admin':
-                        header("Location: admin_dashboard.php");
-                        exit();
-                    default:
-                        header("Location: index.php");
-                        exit();
+                if ($user['Status'] != 'active') {
+                    // Show alert with JavaScript
+                    echo "<script>
+    alert('Your account has been deactivated by the administrator.');
+    window.location.href = 'mainpage.php';
+</script>";
+
+                    // Optionally, for browsers that have JavaScript disabled, use PHP header as a fallback:
+                    header("Refresh: 0; url=login.php");
+                    exit;
+                } else {
+                    // Password is correct, set session variables
+                    $_SESSION['email'] = $user['Email'];
+                    $_SESSION['role'] = $user['Role'];
+                    $_SESSION['full_name'] = $user['FullName'];
+
+                    // Redirect based on role   
+                    switch ($user['Role']) {
+                        case 'patient':
+                            $userID = $user['UserID'];
+                            $sql = "SELECT PatientID FROM patient WHERE UserID = $userID";
+                            // Run the query
+                            $result = mysqli_query($conn, $sql);
+                            // Check and assign result
+                            if ($row = mysqli_fetch_assoc($result)) {
+                                $_SESSION['user_id'] = $row['PatientID'];
+                            }
+                            header("Location: ../patient1/request_service.php");
+                            exit();
+                        case 'nurse':
+                            $userID = $user['UserID'];
+                            $sql = "SELECT NurseID FROM nurse WHERE UserID = $userID";
+                            // Run the query
+                            $result = mysqli_query($conn, $sql);
+                            // Check and assign result
+                            if ($row = mysqli_fetch_assoc($result)) {
+                                $_SESSION['user_id'] = $row['NurseID'];
+                            }
+                            header("Location: ../nurse/publicrequests.php");
+                            exit();
+                        case 'staff':
+
+
+                        case 'admin':
+                            header("Location: admin_dashboard.php");
+                            exit();
+                        default:
+                            header("Location: index.php");
+                            exit();
+                    }
                 }
             } else {
                 $login_error = 'Invalid email or password.';
@@ -551,7 +581,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                 <div class="col-md-4">
                     <div class="text-center p-4">
                         <div class="feature-icon bg-primary bg-opacity-10 text-primary ">
-                            <i class="fas fa-user-clock" ></i>
+                            <i class="fas fa-user-clock"></i>
                         </div>
                         <h3 class="h4">On-Demand Care</h3>
                         <p class="text-muted">Request nursing services whenever you need them, with flexible scheduling options.</p>
@@ -1338,10 +1368,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                 });
             }
         });
-
-
-
-
     </script>
 </body>
 

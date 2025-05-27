@@ -1,8 +1,8 @@
 <?php 
 session_start();
-$_SESSION['user_id'] = 1; // Example: manually set nurse ID
-$_SESSION['user_type'] = 'nurse';
-$_SESSION['logged_in'] = true;
+// $_SESSION['user_id'] = 1; 
+// $_SESSION['user_type'] = 'nurse';
+// $_SESSION['logged_in'] = true;
 
 require_once 'db_connection.php';
 

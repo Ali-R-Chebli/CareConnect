@@ -244,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $service_filter = isset($_GET['service']) ? $_GET['service'] : '';
 
 // Fetch nurses
-$sql_nurses = "SELECT n.NurseID, u.FullName, n.Bio, na.Picture, na.Specialization, na.Gender, na.Language, u.DateOfBirth, a.City, a.Street, AVG(r.Rating) AS AvgRating, COUNT(r.RID) AS ReviewCount
+$sql_nurses = "SELECT n.NurseID, u.FullName, n.Bio, n.image_path, na.Specialization, na.Gender, na.Language, u.DateOfBirth, a.City, a.Street, AVG(r.Rating) AS AvgRating, COUNT(r.RID) AS ReviewCount
                FROM nurse n
                INNER JOIN user u ON n.UserID = u.UserID
                INNER JOIN nurseapplication na ON n.NAID = na.NAID
@@ -316,10 +316,10 @@ $certifications = [];
 $schedule = [];
 $weekly_availability = [];
 $prices = [];
-$image_base_path = '/patient1/images/';
+$image_base_path = '../nurse/';
 if (isset($_GET['nurse_id']) && is_numeric($_GET['nurse_id']) && $_GET['nurse_id'] > 0) {
     $nurse_id = $_GET['nurse_id'];
-    $sql_nurse = "SELECT n.NurseID, u.FullName, n.Bio, na.Picture, na.Specialization, na.Gender, na.Language, u.DateOfBirth, a.City, a.Street, AVG(r.Rating) AS AvgRating, COUNT(r.RID) AS ReviewCount
+    $sql_nurse = "SELECT n.NurseID, u.FullName, n.Bio, n.image_path, na.Specialization, na.Gender, na.Language, u.DateOfBirth, a.City, a.Street, AVG(r.Rating) AS AvgRating, COUNT(r.RID) AS ReviewCount
                   FROM nurse n
                   INNER JOIN user u ON n.UserID = u.UserID
                   INNER JOIN nurseapplication na ON n.NAID = na.NAID
@@ -334,18 +334,18 @@ if (isset($_GET['nurse_id']) && is_numeric($_GET['nurse_id']) && $_GET['nurse_id
         $now = new DateTime();
         $row['Age'] = $now->diff($dob)->y;
         $row['Location'] = ($row['City'] && $row['Street']) ? $row['City'] . ', ' . $row['Street'] : ($row['City'] ?: 'Unknown');
-        $row['Picture'] = !empty($row['Picture']) && file_exists($_SERVER['DOCUMENT_ROOT'] . $image_base_path . $row['Picture']) 
-            ? $image_base_path . $row['Picture'] 
-            : '/patient1/images/default_nurse.jpg';
+        $row['image_path'] = (!empty($row['image_path']))
+            ? '../nurse/' . $row['image_path']
+            : '../nurse/uploads/profile_photos/default.jpg';
+
         $selected_nurse = $row;
     }
 
     $sql_certs = "SELECT Name, Image, Comment FROM certification WHERE NurseID = '$nurse_id' AND Status = 'approved'";
     $result_certs = $conn->query($sql_certs);
     while ($cert_row = $result_certs->fetch_assoc()) {
-        $cert_row['Image'] = !empty($cert_row['Image']) && file_exists($_SERVER['DOCUMENT_ROOT'] . $image_base_path . $cert_row['Image']) 
-            ? $image_base_path . $cert_row['Image'] 
-            : '/patient1/images/default_cert.jpg';
+        $cert_row['Image'] = !empty($cert_row['Image']) ?  "../nurse/" . $cert_row['Image'] :
+             '/nurse/uploads/certifications/default.jpg';
         $certifications[] = $cert_row;
     }
 
@@ -392,6 +392,7 @@ while ($row = $result_care_needed->fetch_assoc()) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -400,6 +401,7 @@ while ($row = $result_care_needed->fetch_assoc()) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="assets/patient.css">
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
@@ -417,7 +419,9 @@ while ($row = $result_care_needed->fetch_assoc()) {
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="?service=All">All Services</a></li>
-                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
                                         <?php foreach ($services as $service): ?>
                                             <li><a class="dropdown-item" href="?service=<?php echo urlencode($service); ?>"><?php echo htmlspecialchars($service); ?></a></li>
                                         <?php endforeach; ?>
@@ -439,11 +443,15 @@ while ($row = $result_care_needed->fetch_assoc()) {
                                                 <div class="card h-100 border-start border-primary border-4" data-nurse-id="<?php echo htmlspecialchars($nurse['NurseID']); ?>">
                                                     <div class="card-body text-center">
                                                         <?php
-                                                        $nurse_image = !empty($nurse['Picture']) && file_exists($_SERVER['DOCUMENT_ROOT'] . $image_base_path . $nurse['Picture']) 
-                                                            ? $image_base_path . $nurse['Picture'] 
-                                                            : '/patient1/images/default_nurse.jpg';
+                                                        $nurse_image = !empty($nurse['image_path'])
+                                                            ? $image_base_path . $nurse['image_path']
+                                                            : '../nurse/uploads/profile_photos/default.jpg';
                                                         ?>
-                                                        <img src="<?php echo htmlspecialchars($nurse_image); ?>" class="rounded-circle mb-3" width="100" alt="Nurse">
+
+
+                                                        <img src="<?php echo htmlspecialchars($nurse_image)  ?>" class="rounded-circle mb-3 " width="130" height="130" alt="Nurse">
+
+
                                                         <h5 class="card-title"><?php echo htmlspecialchars($nurse['FullName']); ?></h5>
                                                         <p class="text-muted small"><?php echo htmlspecialchars($nurse['Specialization'] ?? 'General Nurse'); ?></p>
                                                         <div class="mb-3">
@@ -458,288 +466,296 @@ while ($row = $result_care_needed->fetch_assoc()) {
                                                                     echo '<i class="far fa-star text-warning"></i>';
                                                                 }
                                                             }
-                                                        ?>
-                                                        <span class="small text-muted ms-muted"><?php echo $rating . ' (' . (isset($nurse['ReviewCount']) ? $nurse['ReviewCount'] : 0) . ')'; ?></span>
-                                                    </div>
-                                                    <div class="d-grid gap-2">
-                                                        <button class="btn btn-sm btn-outline-primary view-profile-btn" 
+                                                            ?>
+                                                            <span class="small text-muted ms-muted"><?php echo $rating . ' (' . (isset($nurse['ReviewCount']) ? $nurse['ReviewCount'] : 0) . ')'; ?></span>
+                                                        </div>
+                                                        <div class="d-grid gap-2">
+                                                            <button class="btn btn-sm btn-outline-primary view-profile-btn"
                                                                 data-nurse-id="<?php echo htmlspecialchars($nurse['NurseID']); ?>">
-                                                            View Profile
-                                                        </button>
-                                                        <button class="btn btn-sm btn-primary request-service-btn" 
-                                                            data-nurse-id="<?php echo htmlspecialchars($nurse['NurseID']); ?>"
-                                                            data-nurse-name="<?php echo htmlspecialchars($nurse['FullName']); ?>"
-                                                            data-services='<?php echo htmlspecialchars(json_encode($nurse['services'])); ?>'
-                                                            data-schedules='<?php echo htmlspecialchars(json_encode($nurse['schedules'])); ?>'
-                                                            data-weekly-availability='<?php echo htmlspecialchars(json_encode($nurse['weekly_availability'])); ?>'>
-                                                            Request Service
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-</div>
-
-<!-- Nurse Profile Modal -->
-<!-- Nurse Profile Modal -->
-<div class="modal fade" id="nurseProfileModal" tabindex="-1" role="dialog" aria-labelledby="nurseProfileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="nurseProfileModalLabel">Nurse Profile</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <?php if ($selected_nurse): ?>
-                    <div class="row">
-                        <div class="col-md-4 text-center">
-                            <img src="<?php echo htmlspecialchars($selected_nurse['Picture']); ?>" class="rounded-circle mb-3" width="150" alt="Nurse Photo">
-                            <h4><?php echo htmlspecialchars($selected_nurse['FullName']); ?></h4>
-                            <p class="text-muted"><?php echo htmlspecialchars($selected_nurse['Specialization'] ?? 'General Nurse'); ?></p>
-                            <div class="mb-3">
-                                <?php
-                                $rating = isset($selected_nurse['AvgRating']) && $selected_nurse['AvgRating'] !== null ? round($selected_nurse['AvgRating'], 1) : 0;
-                                for ($i = 1; $i <= 5; $i++) {
-                                    if ($i <= floor($rating)) {
-                                        echo '<i class="fas fa-star text-warning"></i>';
-                                    } elseif ($i == ceil($rating) && $rating - floor($rating) > 0) {
-                                        echo '<i class="fas fa-star-half-alt text-warning"></i>';
-                                    } else {
-                                        echo '<i class="far fa-star text-warning"></i>';
-                                    }
-                                }
-                                ?>
-                                <small class="text-muted"><?php echo $rating . ' (' . (isset($selected_nurse['ReviewCount']) ? $selected_nurse['ReviewCount'] : 0) . ' reviews)'; ?></small>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <ul class="nav nav-tabs" id="nurseProfileTabs" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link active" id="profile-tab" data-bs-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="true">Details</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="schedule-tab" data-bs-toggle="tab" href="#schedule" role="tab" aria-controls="schedule" aria-selected="false">Schedule</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="certification-tab" data-bs-toggle="tab" href="#certification" role="tab" aria-controls="certification" aria-selected="false">Certifications</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="pricing-tab" data-bs-toggle="tab" href="#pricing" role="tab" aria-controls="pricing" aria-selected="false">Pricing</a>
-                                </li>
-                            </ul>
-                            <div class="tab-content p-3 border border-top-0 rounded-bottom" id="nurseProfileTabsContent">
-                                <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-                                    <div class="row">
-                                        <div class="col-sm-6">
-                                            <p><strong>Age:</strong> <?php echo htmlspecialchars($selected_nurse['Age'] ?? 'Unknown'); ?></p>
-                                            <p><strong>Gender:</strong> <?php echo htmlspecialchars($selected_nurse['Gender'] ?? 'Unknown'); ?></p>
-                                            <p><strong>Languages:</strong> <?php echo htmlspecialchars($selected_nurse['Language'] ?? 'Unknown'); ?></p>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <p><strong>Location:</strong> <?php echo htmlspecialchars($selected_nurse['Location'] ?? 'Unknown'); ?></p>
-                                        </div>
-                                    </div>
-                                    <hr>
-                                    <h6>About</h6>
-                                    <p><?php echo htmlspecialchars($selected_nurse['Bio'] ?? 'No bio available.'); ?></p>
-                                </div>
-                                <div class="tab-pane fade" id="schedule" role="tabpanel" aria-labelledby="schedule-tab">
-                                    <div class="alert alert-info small">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Green indicates available slots
-                                    </div>
-                                    <h6>Weekly Availability</h6>
-                                    <?php
-                                    $has_availability = false;
-                                    if (!empty($weekly_availability)) {
-                                        foreach ($weekly_availability as $weekly) {
-                                            if (
-                                                $weekly['Monday'] == 1 ||
-                                                $weekly['Tuesday'] == 1 ||
-                                                $weekly['Wednesday'] == 1 ||
-                                                $weekly['Thursday'] == 1 ||
-                                                $weekly['Friday'] == 1 ||
-                                                $weekly['Saturday'] == 1 ||
-                                                $weekly['Sunday'] == 1
-                                            ) {
-                                                $has_availability = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    if (empty($weekly_availability) || !$has_availability): ?>
-                                        <p class="text-muted">No weekly availability set.</p>
-                                    <?php else: ?>
-                                        <ul class="list-group mb-3">
-                                            <?php foreach ($weekly_availability as $weekly): ?>
-                                                <?php
-                                                $days = [];
-                                                if ($weekly['Monday'] == 1) $days[] = 'Monday';
-                                                if ($weekly['Tuesday'] == 1) $days[] = 'Tuesday';
-                                                if ($weekly['Wednesday'] == 1) $days[] = 'Wednesday';
-                                                if ($weekly['Thursday'] == 1) $days[] = 'Thursday';
-                                                if ($weekly['Friday'] == 1) $days[] = 'Friday';
-                                                if ($weekly['Saturday'] == 1) $days[] = 'Saturday';
-                                                if ($weekly['Sunday'] == 1) $days[] = 'Sunday';
-                                                if (!empty($days)):
-                                                    $time_display = ($weekly['StartTime'] == '00:00:00' && $weekly['EndTime'] == '00:00:00')
-                                                        ? '<br>Available 24 hours'
-                                                        : htmlspecialchars($weekly['StartTime'] . ' - ' . $weekly['EndTime']);
-                                                ?>
-                                                    <li class="list-group-item">
-                                                        <?php echo htmlspecialchars(implode(', ', $days)); ?>
-                                                        <?php echo $time_display; ?>
-                                                    </li>
-                                                <?php endif; ?>
-                                            <?php endforeach; ?>
-                                        </ul>
-                                    <?php endif; ?>
-
-
-                                    <h6>Daily Schedules</h6>
-                                    <?php if (empty($schedule)): ?>
-                                        <p class="text-muted">No daily schedules available.</p>
-                                    <?php else: ?>
-                                        <ul class="list-group">
-                                            <?php foreach ($schedule as $slot): ?>
-                                                <li class="list-group-item">
-                                                    <strong><?php echo htmlspecialchars($slot['Date']); ?>:</strong>
-                                                    <?php echo htmlspecialchars($slot['StartTime'] . ' - ' . $slot['EndTime']); ?>
-                                                    <?php if ($slot['Notes']): ?>
-                                                        <small class="text-muted">(<?php echo htmlspecialchars($slot['Notes']); ?>)</small>
-                                                    <?php endif; ?>
-                                                </li>
-                                            <?php endforeach; ?>
-                                        </ul>
-                                    <?php endif; ?>
-
-
-
-
-
-
-                                </div>
-                                <div class="tab-pane fade" id="certification" role="tabpanel" aria-labelledby="certification-tab">
-                                    <?php if (empty($certifications)): ?>
-                                        <p class="text-muted">No certifications available.</p>
-                                    <?php else: ?>
-                                        <div class="row">
-                                            <?php foreach ($certifications as $cert): ?>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="card h-100">
-                                                        <div class="card-body">
-                                                            <h6 class="card-title"><?php echo htmlspecialchars($cert['Name']); ?></h6>
-                                                            <?php if ($cert['Image']): ?>
-                                                                <img src="<?php echo htmlspecialchars($cert['Image']); ?>" class="img-fluid mb-2" alt="Certification" width="100">
-                                                            <?php endif; ?>
-                                                            <p class="small text-muted"><?php echo htmlspecialchars($cert['Comment'] ?? 'No additional comments.'); ?></p>
+                                                                View Profile
+                                                            </button>
+                                                            <button class="btn btn-sm btn-primary request-service-btn"
+                                                                data-nurse-id="<?php echo htmlspecialchars($nurse['NurseID']); ?>"
+                                                                data-nurse-name="<?php echo htmlspecialchars($nurse['FullName']); ?>"
+                                                                data-services='<?php echo htmlspecialchars(json_encode($nurse['services'])); ?>'
+                                                                data-schedules='<?php echo htmlspecialchars(json_encode($nurse['schedules'])); ?>'
+                                                                data-weekly-availability='<?php echo htmlspecialchars(json_encode($nurse['weekly_availability'])); ?>'>
+                                                                Request Service
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                            </div>
+                        <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+    </main>
+    </div>
+    </div>
+
+    <!-- Nurse Profile Modal -->
+    <!-- Nurse Profile Modal -->
+    <div class="modal fade" id="nurseProfileModal" tabindex="-1" role="dialog" aria-labelledby="nurseProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="nurseProfileModalLabel">Nurse Profile</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <?php if ($selected_nurse): ?>
+                        <div class="row">
+                            <div class="col-md-4 text-center">
+                                <img src="<?php echo htmlspecialchars($selected_nurse['image_path']); ?>" class="rounded-circle mb-3" width="150" height="150" alt="Nurse Photo">
+
+                                <h4><?php echo htmlspecialchars($selected_nurse['FullName']); ?></h4>
+                                <p class="text-muted"><?php echo htmlspecialchars($selected_nurse['Specialization'] ?? 'General Nurse'); ?></p>
+                                <div class="mb-3">
+                                    <?php
+                                    $rating = isset($selected_nurse['AvgRating']) && $selected_nurse['AvgRating'] !== null ? round($selected_nurse['AvgRating'], 1) : 0;
+                                    for ($i = 1; $i <= 5; $i++) {
+                                        if ($i <= floor($rating)) {
+                                            echo '<i class="fas fa-star text-warning"></i>';
+                                        } elseif ($i == ceil($rating) && $rating - floor($rating) > 0) {
+                                            echo '<i class="fas fa-star-half-alt text-warning"></i>';
+                                        } else {
+                                            echo '<i class="far fa-star text-warning"></i>';
+                                        }
+                                    }
+                                    ?>
+                                    <small class="text-muted"><?php echo $rating . ' (' . (isset($selected_nurse['ReviewCount']) ? $selected_nurse['ReviewCount'] : 0) . ' reviews)'; ?></small>
                                 </div>
-                                <div class="tab-pane fade" id="pricing" role="tabpanel" aria-labelledby="pricing-tab">
-                                    <?php if (empty($prices)): ?>
-                                        <p class="text-muted">No pricing information available.</p>
-                                    <?php else: ?>
-                                        <ul class="list-group">
-                                            <?php foreach ($prices as $price): ?>
-                                                <li class="list-group-item">
-                                                    <strong><?php echo htmlspecialchars($price['Name']); ?>:</strong>
-                                                    $<?php echo htmlspecialchars($price['Price']); ?>
-                                                </li>
-                                            <?php endforeach; ?>
-                                        </ul>
-                                    <?php endif; ?>
+                            </div>
+                            <div class="col-md-8">
+                                <ul class="nav nav-tabs" id="nurseProfileTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link active" id="profile-tab" data-bs-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="true">Details</a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="schedule-tab" data-bs-toggle="tab" href="#schedule" role="tab" aria-controls="schedule" aria-selected="false">Schedule</a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="certification-tab" data-bs-toggle="tab" href="#certification" role="tab" aria-controls="certification" aria-selected="false">Certifications</a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="pricing-tab" data-bs-toggle="tab" href="#pricing" role="tab" aria-controls="pricing" aria-selected="false">Pricing</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content p-3 border border-top-0 rounded-bottom" id="nurseProfileTabsContent">
+                                    <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <p><strong>Age:</strong> <?php echo htmlspecialchars($selected_nurse['Age'] ?? 'Unknown'); ?></p>
+                                                <p><strong>Gender:</strong> <?php echo htmlspecialchars($selected_nurse['Gender'] ?? 'Unknown'); ?></p>
+                                                <p><strong>Languages:</strong> <?php echo htmlspecialchars($selected_nurse['Language'] ?? 'Unknown'); ?></p>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <p><strong>Location:</strong> <?php echo htmlspecialchars($selected_nurse['Location'] ?? 'Unknown'); ?></p>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <h6>About</h6>
+                                        <p><?php echo htmlspecialchars($selected_nurse['Bio'] ?? 'No bio available.'); ?></p>
+                                    </div>
+                                    <div class="tab-pane fade" id="schedule" role="tabpanel" aria-labelledby="schedule-tab">
+                                        <div class="alert alert-info small">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Green indicates available slots
+                                        </div>
+                                        <h6>Weekly Availability</h6>
+                                        <?php
+                                        $has_availability = false;
+                                        if (!empty($weekly_availability)) {
+                                            foreach ($weekly_availability as $weekly) {
+                                                if (
+                                                    $weekly['Monday'] == 1 ||
+                                                    $weekly['Tuesday'] == 1 ||
+                                                    $weekly['Wednesday'] == 1 ||
+                                                    $weekly['Thursday'] == 1 ||
+                                                    $weekly['Friday'] == 1 ||
+                                                    $weekly['Saturday'] == 1 ||
+                                                    $weekly['Sunday'] == 1
+                                                ) {
+                                                    $has_availability = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if (empty($weekly_availability) || !$has_availability): ?>
+                                            <p class="text-muted">No weekly availability set.</p>
+                                        <?php else: ?>
+                                            <ul class="list-group mb-3">
+                                                <?php foreach ($weekly_availability as $weekly): ?>
+                                                    <?php
+                                                    $days = [];
+                                                    if ($weekly['Monday'] == 1) $days[] = 'Monday';
+                                                    if ($weekly['Tuesday'] == 1) $days[] = 'Tuesday';
+                                                    if ($weekly['Wednesday'] == 1) $days[] = 'Wednesday';
+                                                    if ($weekly['Thursday'] == 1) $days[] = 'Thursday';
+                                                    if ($weekly['Friday'] == 1) $days[] = 'Friday';
+                                                    if ($weekly['Saturday'] == 1) $days[] = 'Saturday';
+                                                    if ($weekly['Sunday'] == 1) $days[] = 'Sunday';
+                                                    if (!empty($days)):
+                                                        $time_display = ($weekly['StartTime'] == '00:00:00' && $weekly['EndTime'] == '00:00:00')
+                                                            ? '<br>Available 24 hours'
+                                                            : htmlspecialchars($weekly['StartTime'] . ' - ' . $weekly['EndTime']);
+                                                    ?>
+                                                        <li class="list-group-item">
+                                                            <?php echo htmlspecialchars(implode(', ', $days)); ?>
+                                                            <?php echo $time_display; ?>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        <?php endif; ?>
+
+
+                                        <h6>Daily Schedules</h6>
+                                        <?php if (empty($schedule)): ?>
+                                            <p class="text-muted">No daily schedules available.</p>
+                                        <?php else: ?>
+                                            <ul class="list-group">
+                                                <?php foreach ($schedule as $slot): ?>
+                                                    <li class="list-group-item">
+                                                        <strong><?php echo htmlspecialchars($slot['Date']); ?>:</strong>
+                                                        <?php echo htmlspecialchars($slot['StartTime'] . ' - ' . $slot['EndTime']); ?>
+                                                        <?php if ($slot['Notes']): ?>
+                                                            <small class="text-muted">(<?php echo htmlspecialchars($slot['Notes']); ?>)</small>
+                                                        <?php endif; ?>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        <?php endif; ?>
+                                    </div>
+
+
+
+
+
+
+
+                                    <div class="tab-pane fade" id="certification" role="tabpanel" aria-labelledby="certification-tab">
+                                        <?php if (empty($certifications)): ?>
+                                            <p class="text-muted">No certifications available.</p>
+                                        <?php else: ?>
+                                            <div class="row">
+                                                <?php foreach ($certifications as $cert): ?>
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="card h-100">
+                                                            <div class="card-body">
+                                                                <h6 class="card-title"><?php echo htmlspecialchars($cert['Name']); ?></h6>
+                                                                <?php if ($cert['Image']): ?>
+                                                                    <!-- <img src="" class="img-fluid mb-2" alt="Certification" width="100"> -->
+                                                                    
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+
+
+
+
+
+
+                                    <div class="tab-pane fade" id="pricing" role="tabpanel" aria-labelledby="pricing-tab">
+                                        <?php if (empty($prices)): ?>
+                                            <p class="text-muted">No pricing information available.</p>
+                                        <?php else: ?>
+                                            <ul class="list-group">
+                                                <?php foreach ($prices as $price): ?>
+                                                    <li class="list-group-item">
+                                                        <strong><?php echo htmlspecialchars($price['Name']); ?>:</strong>
+                                                        $<?php echo htmlspecialchars($price['Price']); ?>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                <?php else: ?>
-                    <div class="alert alert-warning">
-                        No nurse selected. Please choose a nurse to view their profile.
-                    </div>
-                <?php endif; ?>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <?php if ($selected_nurse): ?>
-                    <button class="btn btn-primary request-service-btn" 
+                    <?php else: ?>
+                        <div class="alert alert-warning">
+                            No nurse selected. Please choose a nurse to view their profile.
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <?php if ($selected_nurse): ?>
+                        <button class="btn btn-primary request-service-btn"
                             data-nurse-id="<?php echo htmlspecialchars($selected_nurse['NurseID']); ?>"
                             data-nurse-name="<?php echo htmlspecialchars($selected_nurse['FullName']); ?>"
                             data-services='<?php echo htmlspecialchars(json_encode($prices)); ?>'
                             data-schedules='<?php echo htmlspecialchars(json_encode($schedule)); ?>'
                             data-weekly-availability='<?php echo htmlspecialchars(json_encode($weekly_availability)); ?>'>
-                        Request This Nurse
-                    </button>
-                <?php endif; ?>
+                            Request This Nurse
+                        </button>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Service Request Modal -->
-<div class="modal fade" id="serviceRequestModal" tabindex="-1" role="dialog" aria-labelledby="serviceRequestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="serviceRequestModalLabel">Request Service for Nurse</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="alert alert-info">You are requesting a service from <strong id="selectedNurseName"><?php echo htmlspecialchars($nurse_name); ?></strong>. Please fill in the details below.</p>
-                <form id="modalServiceRequestForm" action="nurses_available.php" method="POST">
-                    <input type="hidden" name="nurse_id" id="modalNurseId">
-                    <input type="hidden" name="patient_id" value="<?php echo htmlspecialchars($patient_id); ?>">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Service Type <span class="text-danger">*</span></label>
-                        <select class="form-select" name="service_id" id="modalServiceId" required>
-                            <option value="">Select a service</option>
-                        </select>
-                        <div class="invalid-feedback">Please select a service type.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Preferred Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" name="request_date" id="modalRequestDate" required>
-                        <div class="invalid-feedback">Please select a valid date.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Preferred Time</label>
-                        <input type="time" class="form-control" name="preferred_time" id="modalPreferredTime">
-                        <div class="invalid-feedback">Please select a valid time.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Type of Care Needed <span class="text-danger">*</span></label>
-                        <div class="row">
-                            <?php foreach ($care_options as $index => $care): ?>
-                                <div class="col-md-6">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="care_needed[]" value="<?php echo htmlspecialchars($care); ?>" id="modalCare<?php echo $index; ?>">
-                                        <label class="form-check-label" for="modalCare<?php echo $index; ?>"><?php echo htmlspecialchars($care); ?></label>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
+    <!-- Service Request Modal -->
+    <div class="modal fade" id="serviceRequestModal" tabindex="-1" role="dialog" aria-labelledby="serviceRequestModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="serviceRequestModalLabel">Request Service for Nurse</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="alert alert-info">You are requesting a service from <strong id="selectedNurseName"><?php echo htmlspecialchars($nurse_name); ?></strong>. Please fill in the details below.</p>
+                    <form id="modalServiceRequestForm" action="nurses_available.php" method="POST">
+                        <input type="hidden" name="nurse_id" id="modalNurseId">
+                        <input type="hidden" name="patient_id" value="<?php echo htmlspecialchars($patient_id); ?>">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Service Type <span class="text-danger">*</span></label>
+                            <select class="form-select" name="service_id" id="modalServiceId" required>
+                                <option value="">Select a service</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a service type.</div>
                         </div>
-                        <div class="invalid-feedback" id="careNeededFeedback">Please select at least one type of care.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Service Duration (Hours) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" name="duration" id="modalDuration" min="1" max="24" required placeholder="Enter number of hours">
-                        <div class="invalid-feedback">Please enter a valid duration between 1 and 24 hours.</div>
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Preferred Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="request_date" id="modalRequestDate" required>
+                            <div class="invalid-feedback">Please select a valid date.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Preferred Time</label>
+                            <input type="time" class="form-control" name="preferred_time" id="modalPreferredTime">
+                            <div class="invalid-feedback">Please select a valid time.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Type of Care Needed <span class="text-danger">*</span></label>
+                            <div class="row">
+                                <?php foreach ($care_options as $index => $care): ?>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="care_needed[]" value="<?php echo htmlspecialchars($care); ?>" id="modalCare<?php echo $index; ?>">
+                                            <label class="form-check-label" for="modalCare<?php echo $index; ?>"><?php echo htmlspecialchars($care); ?></label>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="invalid-feedback" id="careNeededFeedback">Please select at least one type of care.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Service Duration (Hours) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="duration" id="modalDuration" min="1" max="24" required placeholder="Enter number of hours">
+                            <div class="invalid-feedback">Please enter a valid duration between 1 and 24 hours.</div>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Address for Service <span class="text-danger">*</span></label>
                             <div class="row">
@@ -763,102 +779,103 @@ while ($row = $result_care_needed->fetch_assoc()) {
                                 <i class="fas fa-location-arrow me-1"></i> Use My Current Location
                             </button>
                         </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit Request</button>
-                    </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Submit Request</button>
+                        </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    var patientAddress = {
-        city: '<?php echo htmlspecialchars($patient_address['City'] ?? ''); ?>',
-        street: '<?php echo htmlspecialchars($patient_address['Street'] ?? ''); ?>',
-        building: '<?php echo htmlspecialchars($patient_address['Building'] ?? ''); ?>'
-    };
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        var patientAddress = {
+            city: '<?php echo htmlspecialchars($patient_address['City'] ?? ''); ?>',
+            street: '<?php echo htmlspecialchars($patient_address['Street'] ?? ''); ?>',
+            building: '<?php echo htmlspecialchars($patient_address['Building'] ?? ''); ?>'
+        };
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('nurse_id') && urlParams.get('nurse_id') !== '') {
-            const profileModal = new bootstrap.Modal(document.getElementById('nurseProfileModal'), {
-                backdrop: 'static',
-                keyboard: false
-            });
-            profileModal.show();
-        }
-
-        const viewProfileButtons = document.querySelectorAll('.view-profile-btn');
-        viewProfileButtons.forEach(button => {
-            button.addEventListener('click', function (event) {
-                event.preventDefault();
-                const nurseId = this.getAttribute('data-nurse-id');
-                const serviceFilter = urlParams.get('service') || 'All';
-                const url = `${window.location.pathname}?nurse_id=${nurseId}&service=${encodeURIComponent(serviceFilter)}`;
-                window.location.href = url;
-            });
-        });
-
-        const requestServiceButtons = document.querySelectorAll('.request-service-btn');
-        requestServiceButtons.forEach(button => {
-            button.addEventListener('click', function (event) {
-                event.preventDefault();
-                const nurseId = this.getAttribute('data-nurse-id');
-                const nurseName = this.getAttribute('data-nurse-name');
-                const services = JSON.parse(this.getAttribute('data-services') || '[]');
-                const modalElement = document.getElementById('serviceRequestModal');
-                const form = document.getElementById('modalServiceRequestForm');
-                const modalTitle = document.getElementById('serviceRequestModalLabel');
-                const selectedNurseName = document.getElementById('selectedNurseName');
-
-                if (!modalElement || !form || !modalTitle || !selectedNurseName) return;
-
-                modalTitle.textContent = `Request Service for ${nurseName}`;
-                selectedNurseName.textContent = nurseName;
-                document.getElementById('modalNurseId').value = nurseId;
-                form.reset();
-                document.getElementById('modalCity').value = patientAddress.city || '';
-                document.getElementById('modalStreet').value = patientAddress.street || '';
-                document.getElementById('modalBuilding').value = patientAddress.building || '';
-
-                const serviceSelect = document.getElementById('modalServiceId');
-                serviceSelect.innerHTML = '<option value="">Select a service</option>';
-                if (services.length === 0) {
-                    serviceSelect.innerHTML += '<option value="">No services available</option>';
-                } else {
-                    services.forEach(service => {
-                        const option = document.createElement('option');
-                        option.value = service.ServiceID;
-                        option.textContent = service.Name;
-                        serviceSelect.appendChild(option);
-                    });
-                }
-
-                const modal = new bootstrap.Modal(modalElement, {
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('nurse_id') && urlParams.get('nurse_id') !== '') {
+                const profileModal = new bootstrap.Modal(document.getElementById('nurseProfileModal'), {
                     backdrop: 'static',
                     keyboard: false
                 });
-                modal.show();
-            });
-        });
+                profileModal.show();
+            }
 
-        const useCurrentLocationBtn = document.getElementById('useCurrentLocationBtn');
-        if (useCurrentLocationBtn) {
-            useCurrentLocationBtn.addEventListener('click', function (event) {
-                event.preventDefault();
-                if (patientAddress.city || patientAddress.street || patientAddress.building) {
-                    document.getElementById('modalCity').value = patientAddress.city;
-                    document.getElementById('modalStreet').value = patientAddress.street;
-                    document.getElementById('modalBuilding').value = patientAddress.building;
-                } else {
-                    alert('No address registered for this patient. Please enter the address manually.');
-                }
+            const viewProfileButtons = document.querySelectorAll('.view-profile-btn');
+            viewProfileButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const nurseId = this.getAttribute('data-nurse-id');
+                    const serviceFilter = urlParams.get('service') || 'All';
+                    const url = `${window.location.pathname}?nurse_id=${nurseId}&service=${encodeURIComponent(serviceFilter)}`;
+                    window.location.href = url;
+                });
             });
-        }
-    });
-</script>
+
+            const requestServiceButtons = document.querySelectorAll('.request-service-btn');
+            requestServiceButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const nurseId = this.getAttribute('data-nurse-id');
+                    const nurseName = this.getAttribute('data-nurse-name');
+                    const services = JSON.parse(this.getAttribute('data-services') || '[]');
+                    const modalElement = document.getElementById('serviceRequestModal');
+                    const form = document.getElementById('modalServiceRequestForm');
+                    const modalTitle = document.getElementById('serviceRequestModalLabel');
+                    const selectedNurseName = document.getElementById('selectedNurseName');
+
+                    if (!modalElement || !form || !modalTitle || !selectedNurseName) return;
+
+                    modalTitle.textContent = `Request Service for ${nurseName}`;
+                    selectedNurseName.textContent = nurseName;
+                    document.getElementById('modalNurseId').value = nurseId;
+                    form.reset();
+                    document.getElementById('modalCity').value = patientAddress.city || '';
+                    document.getElementById('modalStreet').value = patientAddress.street || '';
+                    document.getElementById('modalBuilding').value = patientAddress.building || '';
+
+                    const serviceSelect = document.getElementById('modalServiceId');
+                    serviceSelect.innerHTML = '<option value="">Select a service</option>';
+                    if (services.length === 0) {
+                        serviceSelect.innerHTML += '<option value="">No services available</option>';
+                    } else {
+                        services.forEach(service => {
+                            const option = document.createElement('option');
+                            option.value = service.ServiceID;
+                            option.textContent = service.Name;
+                            serviceSelect.appendChild(option);
+                        });
+                    }
+
+                    const modal = new bootstrap.Modal(modalElement, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    modal.show();
+                });
+            });
+
+            const useCurrentLocationBtn = document.getElementById('useCurrentLocationBtn');
+            if (useCurrentLocationBtn) {
+                useCurrentLocationBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    if (patientAddress.city || patientAddress.street || patientAddress.building) {
+                        document.getElementById('modalCity').value = patientAddress.city;
+                        document.getElementById('modalStreet').value = patientAddress.street;
+                        document.getElementById('modalBuilding').value = patientAddress.building;
+                    } else {
+                        alert('No address registered for this patient. Please enter the address manually.');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
+
 </html>

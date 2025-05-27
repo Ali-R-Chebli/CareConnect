@@ -1,10 +1,14 @@
 <?php
 session_start();
-$_SESSION['nurse_id'] = 1;
+// $_SESSION['nurse_id'] = 28;
 $_SESSION['user_type'] = 'nurse';
 $_SESSION['logged_in'] = true;
+
+
 require_once 'db_connection.php';
-$nurse_id = $_SESSION['nurse_id'];
+$nurse_id = $_SESSION['user_id'];
+
+
 
 // Fetch nurse and user data
 $nurse_data = [];
@@ -375,7 +379,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             </div>
                                         </div>
                                         <h4 class="card-title mb-1"><?= htmlspecialchars($user_data['FullName'] ?? '') ?></h4>
-                                        <p class="text-muted mb-2">Nurse ID: <?= $nurse_id ?></p>
+                                        <p class="text-muted mb-2">Nurse ID: <?= $nurse_id ?> <?= $_SESSION['user_id']  ?></p>
 
                                         <div class="d-flex justify-content-center gap-2 mb-3">
                                             <a href="mailto:<?= htmlspecialchars($user_data['Email'] ?? '') ?>" class="text-decoration-none">

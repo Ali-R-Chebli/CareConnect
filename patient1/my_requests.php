@@ -117,12 +117,21 @@ foreach ($requests as $request) {
 
         // Private request: get nurse from request.NurseID
         if ($request['NurseID'] && $request['ispublic'] == 0) {
+            // $sql = "SELECT n.NurseID, u.FullName AS NurseName, n.Bio AS NurseBio, 
+            //                na.Specialization, na.Gender AS NurseGender, na.Language
+            //         FROM nurse n
+            //         JOIN user u ON n.UserID = u.UserID
+            //         JOIN nurseapplication na ON n.NAID = na.NAID
+            //         WHERE n.NurseID = " . (int)$request['NurseID'];
+
             $sql = "SELECT n.NurseID, u.FullName AS NurseName, n.Bio AS NurseBio, 
-                           na.Specialization, na.Gender AS NurseGender, na.Language
-                    FROM nurse n
-                    JOIN user u ON n.UserID = u.UserID
-                    JOIN nurseapplication na ON n.NAID = na.NAID
-                    WHERE n.NurseID = " . (int)$request['NurseID'];
+               na.Specialization, na.Gender AS NurseGender, na.Language, n.image_path
+        FROM nurse n
+        JOIN user u ON n.UserID = u.UserID
+        JOIN nurseapplication na ON n.NAID = na.NAID
+        WHERE n.NurseID = " . (int)$request['NurseID'];
+
+
             $result = $conn->query($sql);
             if ($row = $result->fetch_assoc()) {
                 $nurses[] = $row;
@@ -131,13 +140,23 @@ foreach ($requests as $request) {
 
         // Public request: get accepted nurses from request_applications
         if ($request['ispublic'] == 1) {
+            // $sql = "SELECT ra.NurseID, u.FullName AS NurseName, n.Bio AS NurseBio, 
+            //                na.Specialization, na.Gender AS NurseGender, na.Language
+            //         FROM request_applications ra
+            //         JOIN nurse n ON ra.NurseID = n.NurseID
+            //         JOIN user u ON n.UserID = u.UserID
+            //         JOIN nurseapplication na ON n.NAID = na.NAID
+            //         WHERE ra.RequestID = $request_id AND ra.ApplicationStatus = 'accepted'";
+
             $sql = "SELECT ra.NurseID, u.FullName AS NurseName, n.Bio AS NurseBio, 
-                           na.Specialization, na.Gender AS NurseGender, na.Language
-                    FROM request_applications ra
-                    JOIN nurse n ON ra.NurseID = n.NurseID
-                    JOIN user u ON n.UserID = u.UserID
-                    JOIN nurseapplication na ON n.NAID = na.NAID
-                    WHERE ra.RequestID = $request_id AND ra.ApplicationStatus = 'accepted'";
+               na.Specialization, na.Gender AS NurseGender, na.Language, ra.ApplicationStatus, n.image_path
+        FROM request_applications ra
+        JOIN nurse n ON ra.NurseID = n.NurseID
+        JOIN user u ON n.UserID = u.UserID
+        JOIN nurseapplication na ON n.NAID = na.NAID
+        WHERE ra.RequestID = $request_id";
+
+
             $result = $conn->query($sql);
             while ($row = $result->fetch_assoc()) {
                 $nurses[] = $row;
@@ -154,7 +173,7 @@ foreach ($requests as $request) {
     if ($request['ispublic'] == 1 && $request['ApplicationCount'] > 0) {
         $request_id = $request['RequestID'];
         $sql = "SELECT ra.NurseID, u.FullName AS NurseName, n.Bio AS NurseBio, 
-                       na.Specialization, na.Gender AS NurseGender, na.Language, ra.ApplicationStatus
+                       na.Specialization, na.Gender AS NurseGender, na.Language, ra.ApplicationStatus , n.image_path
                 FROM request_applications ra
                 JOIN nurse n ON ra.NurseID = n.NurseID
                 JOIN user u ON n.UserID = u.UserID
@@ -454,7 +473,11 @@ $conn->query($sql);
                         </div>
                         <div class="modal-body">
                             <div class="text-center mb-3">
-                                <img src="https://via.placeholder.com/150" class="rounded-circle profile-img" width="100" alt="Nurse">
+
+                                <img src="<?php echo !empty($nurse['image_path']) ? "../nurse/" . htmlspecialchars($nurse['image_path']) : '../nurse/uploads/profile_photos/default.png'; ?>"
+                                    class="rounded-circle profile-img" width="130" height="130" alt="Nurse">
+
+                                    
                                 <h5><?php echo htmlspecialchars($nurse['NurseName'] ?: 'Unknown'); ?></h5>
                                 <p class="text-muted"><?php echo htmlspecialchars($nurse['Specialization'] ?: 'N/A'); ?></p>
                             </div>
@@ -756,8 +779,10 @@ $conn->query($sql);
                                 </div>
                                 <div class="modal-body">
                                     <div class="text-center mb-3">
-                                        <img src="https://via.placeholder.com/150" class="rounded-circle profile-img" width="100" alt="Nurse">
-                                        <h5><?php echo htmlspecialchars($applicant['NurseName'] ?: 'Unknown'); ?></h5>
+                                        <img src="<?php echo !empty($applicant['image_path']) ? "../nurse/" . htmlspecialchars($applicant['image_path']) : '../nurse/uploads/profile_photos/default.jpg'; ?>"
+                                            class="rounded-circle profile-img" width="130" height="130" alt="Nurse">
+                                            
+                                        <h5 class="mt-5"><?php echo htmlspecialchars($applicant['NurseName'] ?: 'Unknown'); ?></h5>
                                         <p class="text-muted"><?php echo htmlspecialchars($applicant['Specialization'] ?: 'N/A'); ?></p>
                                     </div>
                                     <div class="row">

@@ -1,8 +1,8 @@
 <?php
 session_start();
-$_SESSION['user_id'] = 1; // Example: manually set nurse ID
-$_SESSION['user_type'] = 'nurse';
-$_SESSION['logged_in'] = true;
+// $_SESSION['user_id'] = 1; // Example: manually set nurse ID
+// $_SESSION['user_type'] = 'nurse';
+// $_SESSION['logged_in'] = true;
 
 
 function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)

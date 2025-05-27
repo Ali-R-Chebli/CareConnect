@@ -113,12 +113,13 @@ $row_count = mysqli_num_rows($result);
                                         <?php echo ucfirst($row['RequestStatus']); ?>
                                     </span>
                                 </td>
-                                <td>
+                                <td style="display: flex; justify-content: start;" class="pe-5">
+                                    <!-- <button class="btn btn-danger btn-sm">Reject</button> -->
+                                    <button class="btn btn-success btn-sm me-3" data-bs-toggle="modal" data-bs-target="#detailsModal_<?php echo $row['RequestID']; ?>">Details</button>
+                                    <a href="send_message.php?id=<?php echo $row['UserID'] ?? ''; ?>" class="btn btn-primary me-3 btn-sm <?php echo !$row['UserID'] ? 'disabled' : ''; ?>">Send Message</a>
                                     <?php if ($row['RequestStatus'] === 'pending' || $row['RequestStatus'] === 'inprocess') { ?>
-                                        <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal_<?php echo $row['RequestID']; ?>">Reject</button>
+                                        <button class="btn btn-danger btn-sm me-3" data-bs-toggle="modal" data-bs-target="#rejectModal_<?php echo $row['RequestID']; ?>">Reject</button>
                                     <?php } ?>
-                                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#detailsModal_<?php echo $row['RequestID']; ?>">Details</button>
-                                    <a href="send_message.php?id=<?php echo $row['UserID'] ?? ''; ?>" class="btn btn-primary btn-sm <?php echo !$row['UserID'] ? 'disabled' : ''; ?>">Send Message</a>
                                 </td>
                             </tr>
                             <!-- Reject Modal -->

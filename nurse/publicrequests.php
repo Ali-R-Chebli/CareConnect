@@ -1,8 +1,8 @@
 <?php
 session_start();
-$_SESSION['user_id'] = 1; // Example: manually set nurse ID
-$_SESSION['user_type'] = 'nurse';
-$_SESSION['logged_in'] = true;
+// $_SESSION['user_id'] = 1; 
+// $_SESSION['user_type'] = 'nurse';
+// $_SESSION['logged_in'] = true;
 
 // Function to check if nurse is available for the request
 function isNurseAvailable($conn, $nurseId, $requestDate)

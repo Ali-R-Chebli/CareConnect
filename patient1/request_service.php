@@ -41,7 +41,7 @@ $selected_nurse = null;
 $certifications = [];
 $schedule = [];
 $prices = [];
-$image_base_path = '/patient1/images/';
+$image_base_path = '../nurse/';
 $show_nurse_list = false;
 $error = '';
 $form_data = [];
@@ -205,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nurses = selectBestNurses($conn, $form_data['service_id'], $form_data['gender'], $form_data['age_type'], $patient_lat, $patient_lon);
         $show_nurse_list = true;
 
-        $sql_nurse = "SELECT n.NurseID, u.FullName, n.Bio, na.Picture, na.Specialization, na.Gender, na.Language, u.DateOfBirth, a.City, a.Street, AVG(r.Rating) AS AvgRating, COUNT(r.RID) AS ReviewCount
+        $sql_nurse = "SELECT n.NurseID, u.FullName, n.Bio, na.Specialization, na.Gender, na.Language, u.DateOfBirth, a.City, a.Street, AVG(r.Rating) AS AvgRating, COUNT(r.RID) AS ReviewCount , n.image_path
                       FROM nurse n
                       INNER JOIN user u ON n.UserID = u.UserID
                       INNER JOIN nurseapplication na ON n.NAID = na.NAID
@@ -220,9 +220,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $now = new DateTime();
             $row['Age'] = $now->diff($dob)->y;
             $row['Location'] = ($row['City'] && $row['Street']) ? $row['City'] . ', ' . $row['Street'] : ($row['City'] ?: 'Unknown');
-            $row['Picture'] = !empty($row['Picture']) && file_exists($_SERVER['DOCUMENT_ROOT'] . $image_base_path . $row['Picture']) 
-                ? $image_base_path . $row['Picture'] 
-                : '/patient1/images/default_nurse.jpg';
+
+            $row['image_path'] = !empty($row['image_path']) ? $image_base_path . $row['image_path'] 
+                : '../nurse/uploads/profile_photos/default.jpg';
             $selected_nurse = $row;
         }
 
@@ -303,7 +303,7 @@ if ($success) {
 
     if (!empty($selected_nurse_ids)) {
         $nurse_ids_sql = implode(',', array_map('intval', $selected_nurse_ids));
-        $sql_nurse_names = "SELECT n.NurseID, u.FullName
+        $sql_nurse_names = "SELECT n.NurseID, u.FullName , n.image_path
                             FROM nurse n
                             INNER JOIN user u ON n.UserID = u.UserID
                             WHERE n.NurseID IN ($nurse_ids_sql)";
@@ -358,12 +358,25 @@ if ($success) {
                                                 <div class="col-md-4 mb-4">
                                                     <div class="card h-100 border-start border-primary border-4" data-nurse-id="<?php echo htmlspecialchars($nurse['NurseID']); ?>">
                                                         <div class="card-body text-center">
+
+
+
                                                             <?php
-                                                            $nurse_image = !empty($nurse['Picture']) && file_exists($_SERVER['DOCUMENT_ROOT'] . $image_base_path . $nurse['Picture']) 
-                                                                ? $image_base_path . $nurse['Picture'] 
-                                                                : '/patient1/images/default_nurse.jpg';
+                                                            $nurse_image = !empty($nurse['image_path']) 
+                                                                ? "../nurse/" . $nurse['image_path'] 
+                                                                : '../nurse/uploads/profile_photos/default.jpg';
                                                             ?>
-                                                            <img src="<?php echo htmlspecialchars($nurse_image); ?>" class="rounded-circle mb-3" width="100" alt="Nurse">
+
+
+                                                            
+                                                            <img src="<?php echo htmlspecialchars($nurse_image); ?>" class="rounded-circle mb-3" width="130" height="130" alt="Nurse">
+
+
+
+                                                             
+
+
+
                                                             <h5 class="card-title"><?php echo htmlspecialchars($nurse['FullName']); ?></h5>
                                                             <p class="text-muted small"><?php echo htmlspecialchars($nurse['Specialization'] ?? 'General Nurse'); ?></p>
                                                             <div class="mb-3">
@@ -607,7 +620,15 @@ if ($success) {
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-4 mb-3 text-center">
-                            <img src="<?php echo htmlspecialchars($selected_nurse['Picture'] ?? '/patient1/images/default_nurse.jpg'); ?>" class="rounded-circle mb-3" width="150" alt="Nurse Photo">
+
+
+                            <img src="<?php echo !empty($selected_nurse['image_path']) ? "../nurse/" . htmlspecialchars($selected_nurse['image_path']) : '../nurse/uploads/profile_photos/default.jpg'; ?>" class="rounded-circle mb-3" width="150" height="150" alt="Nurse Photo">
+
+
+                            <!-- <pre><?php // print_r($selected_nurse); ?></pre> -->
+
+
+
                             <h4><?php echo htmlspecialchars($selected_nurse['FullName'] ?? 'Unknown'); ?></h4>
                             <p class="text-muted"><?php echo htmlspecialchars($selected_nurse['Specialization'] ?? 'General Nurse'); ?></p>
                             <div class="mb-3">
@@ -688,9 +709,6 @@ if ($success) {
                                                     <div class="card h-100">
                                                         <div class="card-body">
                                                             <h6 class="card-title"><?php echo htmlspecialchars($cert['Name']); ?></h6>
-                                                            <?php if ($cert['Image']): ?>
-                                                                <img src="<?php echo htmlspecialchars($cert['Image']); ?>" class="img-fluid mb-2" alt="Certification" style="max-width: 100px;">
-                                                            <?php endif; ?>
                                                             <p class="small text-muted"><?php echo htmlspecialchars($cert['Comment'] ?: 'No additional comments.'); ?></p>
                                                         </div>
                                                     </div>

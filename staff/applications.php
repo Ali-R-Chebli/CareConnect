@@ -510,6 +510,24 @@ if ($result) {
     </div>
 
 
+<!-- Add this just before the closing </body> tag -->
+<div id="logoutModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Confirm Logout</h3>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to log out?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-light" id="cancelLogout">Cancel</button>
+            <button class="btn btn-danger" id="confirmLogout">Log Out</button>
+        </div>
+    </div>
+</div>
+
+
 
     <script>
         // Application tabs - Updated to properly filter applications
@@ -649,6 +667,58 @@ if ($result) {
             // Trigger click on the 'All' tab to ensure proper initialization
             document.querySelector('[data-app-tab="all"]').click();
         });
+
+            // Get modal elements
+    const logoutModal = document.getElementById('logoutModal');
+    const logoutBtn = document.querySelector('.logout-btn');
+    const closeBtn = document.querySelector('.close');
+    const cancelBtn = document.getElementById('cancelLogout');
+    const confirmBtn = document.getElementById('confirmLogout');
+
+    // Open modal when logout button is clicked
+    logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        logoutModal.style.display = 'flex';
+    });
+
+    // Close modal when X is clicked
+    closeBtn.addEventListener('click', function() {
+        logoutModal.style.display = 'none';
+    });
+
+    // Close modal when Cancel is clicked
+    cancelBtn.addEventListener('click', function() {
+        logoutModal.style.display = 'none';
+    });
+
+    // Redirect to logout page when confirmed
+confirmBtn.addEventListener('click', function() {
+    fetch('../includes/logout.php', {
+        method: 'POST',
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = '../homepage/mainpage.php';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during logout.');
+    });
+});// Redirect to logout page when confirmed
+    confirmBtn.addEventListener('click', function() {
+        window.location.href = '../homepage/mainpage.php';
+    });
+
+
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target === logoutModal) {
+            logoutModal.style.display = 'none';
+        }
+    });
     </script>
 </body>
 

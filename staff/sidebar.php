@@ -8,4 +8,7 @@
         <li><a href="reports.php" data-tab="reports"><i class="fas fa-flag"></i> <span>Reports</span></a></li>
         <li><a href="notifications.php" data-tab="notifications"><i class="fas fa-bell"></i> <span>Send Notifications</span></a></li>
     </ul>
+    <div class="sidebar-footer">
+        <a href="logout.php" class="logout-btn"><i class="fas fa-sign-out-alt"></i> <span>Log Out</span></a>
+    </div>
 </div>

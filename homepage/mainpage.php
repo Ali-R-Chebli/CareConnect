@@ -8,18 +8,19 @@ $register_success = '';
 $nurse_application_message = '';
 
 // Handle Login
+
+// Handle Login
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
-    $role = $_POST['role']; // patient, nurse, or staff
 
     // Validate inputs
     if (empty($email) || empty($password)) {
         $login_error = 'Please enter both email and password.';
     } else {
         // Prepare SQL to prevent SQL injection
-        $stmt = $conn->prepare("SELECT * FROM user WHERE Email = ? AND Role = ? LIMIT 1");
-        $stmt->bind_param("ss", $email, $role);
+        $stmt = $conn->prepare("SELECT * FROM user WHERE Email = ? LIMIT 1");
+        $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -28,15 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
             // Verify password (assuming passwords are hashed)
             if (password_verify($password, $user['Password'])) {
-
                 if ($user['Status'] != 'active') {
-                    // Show alert with JavaScript
                     echo "<script>
-    alert('Your account has been deactivated by the administrator.');
-    window.location.href = 'mainpage.php';
-</script>";
-
-                    // Optionally, for browsers that have JavaScript disabled, use PHP header as a fallback:
+                        alert('Your account has been deactivated by the administrator.');
+                        window.location.href = 'mainpage.php';
+                    </script>";
                     header("Refresh: 0; url=login.php");
                     exit;
                 } else {
@@ -50,9 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                         case 'patient':
                             $userID = $user['UserID'];
                             $sql = "SELECT PatientID FROM patient WHERE UserID = $userID";
-                            // Run the query
                             $result = mysqli_query($conn, $sql);
-                            // Check and assign result
                             if ($row = mysqli_fetch_assoc($result)) {
                                 $_SESSION['user_id'] = $row['PatientID'];
                             }
@@ -61,9 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                         case 'nurse':
                             $userID = $user['UserID'];
                             $sql = "SELECT NurseID FROM nurse WHERE UserID = $userID";
-                            // Run the query
                             $result = mysqli_query($conn, $sql);
-                            // Check and assign result
                             if ($row = mysqli_fetch_assoc($result)) {
                                 $_SESSION['user_id'] = $row['NurseID'];
                             }
@@ -71,10 +64,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                             exit();
                         case 'staff':
                             $_SESSION['user_id'] = $user['UserID'];
-                            header("Location: ../nurse/publicrequests.php");
-                        case 'admin':
-
                             header("Location: ../staff/applications.php");
+                            exit();
+                        case 'admin':
+                            header("Location: ../admin/dashboard.php");
                             exit();
                         default:
                             header("Location: index.php");
@@ -90,7 +83,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         $stmt->close();
     }
 }
-
 
 
 // Handle Patient Registration
@@ -624,6 +616,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                         </div>
                         <h3 class="h4">On-Demand Care</h3>
                         <p class="text-muted">Request nursing services whenever you need them, with flexible scheduling options.</p>
+
+                        <?php
+                        // $newPassword = "admin123";
+                        // $hashedPassword1 = password_hash($newPassword, PASSWORD_BCRYPT);
+                        // echo $hashedPassword1 ;
+                        ?>
+
+
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -983,6 +983,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
     </footer>
 
     <!-- Login Modal -->
+    <!-- Login Modal -->
     <div class="modal fade login-modal" id="loginModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -991,81 +992,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <ul class="nav nav-tabs login-tabs border-0 mb-4" id="loginTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="patient-tab" data-bs-toggle="tab" data-bs-target="#patient-login" type="button" role="tab">Patient</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="nurse-tab" data-bs-toggle="tab" data-bs-target="#nurse-login" type="button" role="tab">Nurse</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="staff-tab" data-bs-toggle="tab" data-bs-target="#staff-login" type="button" role="tab">Staff</button>
-                        </li>
-                    </ul>
+                    <?php if (!empty($login_error)): ?>
+                        <div class="alert alert-danger"><?php echo $login_error; ?></div>
+                    <?php endif; ?>
 
-                    <!-- login form -->
-                    <div class="tab-content" id="loginTabsContent">
-                        <div class="tab-pane fade show active" id="patient-login" role="tabpanel">
-                            <form method="POST" action="">
-                                <input type="hidden" name="role" value="patient">
-                                <div class="mb-3">
-                                    <label for="patientEmail" class="form-label">Email address</label>
-                                    <input type="email" class="form-control" id="patientEmail" name="email" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="patientPassword" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="patientPassword" name="password" required>
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="rememberPatient">
-                                    <label class="form-check-label" for="rememberPatient">Remember me</label>
-                                </div>
-                                <button type="submit" name="login" class="btn btn-primary w-100">Login as Patient</button>
-                            </form>
+                    <form method="POST" action="">
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="loginEmail" name="email" required>
                         </div>
-
-                        <div class="tab-pane fade" id="nurse-login" role="tabpanel">
-                            <form method="POST" action="">
-                                <input type="hidden" name="role" value="nurse">
-                                <div class="mb-3">
-                                    <label for="nurseEmail" class="form-label">Email address</label>
-                                    <input type="email" class="form-control" id="nurseEmail" name="email" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="nursePassword" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="nursePassword" name="password" required>
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="rememberNurse">
-                                    <label class="form-check-label" for="rememberNurse">Remember me</label>
-                                </div>
-                                <button type="submit" name="login" class="btn btn-primary w-100">Login as Nurse</button>
-                            </form>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" name="password" required>
                         </div>
-
-                        <div class="tab-pane fade" id="staff-login" role="tabpanel">
-                            <form method="POST" action="">
-                                <input type="hidden" name="role" value="staff">
-                                <div class="mb-3">
-                                    <label for="staffEmail" class="form-label">Email address</label>
-                                    <input type="email" class="form-control" id="staffEmail" name="email" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="staffPassword" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="staffPassword" name="password" required>
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="rememberStaff">
-                                    <label class="form-check-label" for="rememberStaff">Remember me</label>
-                                </div>
-                                <button type="submit" name="login" class="btn btn-primary w-100">Login as Staff</button>
-                            </form>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Remember me</label>
                         </div>
-                    </div>
-                    <!-- login form -->
-
-
-
+                        <button type="submit" name="login" class="btn btn-primary w-100">Login</button>
+                    </form>
 
                     <div class="text-center mt-3">
                         <a href="#" class="text-decoration-none">Forgot password?</a>
@@ -1074,6 +1019,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
             </div>
         </div>
     </div>
+
+
+
 
     <!-- Register Modal -->
     <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
@@ -1452,43 +1400,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
 
 
         // Add this to your existing JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    const patientGetLocationBtn = document.getElementById('patientGetLocationBtn');
+        document.addEventListener('DOMContentLoaded', function() {
+            const patientGetLocationBtn = document.getElementById('patientGetLocationBtn');
 
-    if (patientGetLocationBtn) {
-        patientGetLocationBtn.addEventListener('click', function() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        // Set latitude and longitude
-                        document.getElementById('patientLatitude').value = position.coords.latitude;
-                        document.getElementById('patientLongitude').value = position.coords.longitude;
+            if (patientGetLocationBtn) {
+                patientGetLocationBtn.addEventListener('click', function() {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            function(position) {
+                                // Set latitude and longitude
+                                document.getElementById('patientLatitude').value = position.coords.latitude;
+                                document.getElementById('patientLongitude').value = position.coords.longitude;
 
-                        // Reverse geocoding to get address details
-                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.address) {
-                                    document.getElementById('patientCountry').value = data.address.country || '';
-                                    document.getElementById('patientCity').value = data.address.city || data.address.town || data.address.village || '';
-                                    document.getElementById('patientStreet').value = data.address.road || '';
-                                    document.getElementById('patientBuilding').value = data.address.house_number || '';
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error fetching address details:', error);
-                            });
-                    },
-                    function(error) {
-                        alert('Error getting location: ' + error.message);
+                                // Reverse geocoding to get address details
+                                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.address) {
+                                            document.getElementById('patientCountry').value = data.address.country || '';
+                                            document.getElementById('patientCity').value = data.address.city || data.address.town || data.address.village || '';
+                                            document.getElementById('patientStreet').value = data.address.road || '';
+                                            document.getElementById('patientBuilding').value = data.address.house_number || '';
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error fetching address details:', error);
+                                    });
+                            },
+                            function(error) {
+                                alert('Error getting location: ' + error.message);
+                            }
+                        );
+                    } else {
+                        alert('Geolocation is not supported by your browser.');
                     }
-                );
-            } else {
-                alert('Geolocation is not supported by your browser.');
+                });
             }
         });
-    }
-});
     </script>
 </body>
 

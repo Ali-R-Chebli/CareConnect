@@ -70,10 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                             header("Location: ../nurse/publicrequests.php");
                             exit();
                         case 'staff':
-
-
+                            $_SESSION['user_id'] = $user['UserID'];
+                            header("Location: ../nurse/publicrequests.php");
                         case 'admin':
-                            header("Location: admin_dashboard.php");
+
+                            header("Location: ../staff/applications.php");
                             exit();
                         default:
                             header("Location: index.php");

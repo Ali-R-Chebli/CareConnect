@@ -1,13 +1,24 @@
 <?php
+require_once 'db_connection.php';
 // Start session and include database connection
 session_start();
 // $_SESSION['nurse_id'] = 1; 
 // $_SESSION['user_type'] = 'nurse';
 // $_SESSION['logged_in'] = true;
 
+if (isset($_POST['confirm_logout'])) {
+    // session_destroy();
+    unset($_SESSION['email']);
+    unset($_SESSION['role']);
+    unset($_SESSION['full_name']);
+    unset($_SESSION['user_id']);
+    session_destroy();
+    header("Location: ../homepage/mainpage.php");
+    exit();
+}
+
 $nurse_id = $_SESSION['user_id'];
 
-require_once 'db_connection.php';
 
 
 
@@ -92,9 +103,18 @@ function getNurseRequests($nurse_id, $status, $conn)
 
 
         // Private requests (assigned directly to the nurse)
-        $private_query = "SELECT r.* , s.Name AS Type
-                          FROM request r , service s
-                          WHERE r.NurseID = ? AND r.RequestStatus = 'inprocess' AND r.Type = s.ServiceID";
+$private_query = "
+    SELECT r.*, 
+           s.Name AS Type, 
+           u.FullName AS PatientFullName
+    FROM request r
+    JOIN service s ON r.Type = s.ServiceID
+    LEFT JOIN patient p ON r.PatientID = p.PatientID
+    LEFT JOIN user u ON p.UserID = u.UserID
+    WHERE r.NurseID = ? 
+      AND r.RequestStatus = 'inprocess'
+";
+
         $stmt = $conn->prepare($private_query);
         $stmt->bind_param("i", $nurse_id);
         $stmt->execute();
@@ -103,20 +123,25 @@ function getNurseRequests($nurse_id, $status, $conn)
             $requests[] = $row;
         }
 
-        $public_query = "SELECT 
+$public_query = "SELECT 
         r.*, 
+        u.FullName AS PatientFullName,
         a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
-        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded , s.Name AS Type
+        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded, 
+        s.Name AS Type
     FROM request r
     JOIN request_applications ra ON r.RequestID = ra.RequestID
     LEFT JOIN address a ON r.AddressID = a.AddressID
+    LEFT JOIN patient p ON r.PatientID = p.PatientID
+    LEFT JOIN user u ON p.UserID = u.UserID
     LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
     LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
     LEFT JOIN service s ON r.Type = s.ServiceID
     WHERE ra.NurseID = ? 
       AND ra.ApplicationStatus = 'accepted' 
       AND r.RequestStatus = 'inprocess'
-    GROUP BY r.RequestID "; 
+    GROUP BY r.RequestID ";
+
 
 
 
@@ -133,9 +158,18 @@ function getNurseRequests($nurse_id, $status, $conn)
     // Case 2: Pending Requests
     elseif ($status === 'pending') {
         // Private requests (assigned directly to the nurse)
-        $private_query = "SELECT r.* , s.Name AS Type
-                          FROM request r , service s 
-                          WHERE r.NurseID = ? AND r.RequestStatus = 'pending' AND r.Type = s.ServiceID";
+$private_query = "
+    SELECT r.*, 
+           s.Name AS Type, 
+           u.FullName AS PatientFullName
+    FROM request r
+    JOIN service s ON r.Type = s.ServiceID
+    LEFT JOIN patient p ON r.PatientID = p.PatientID
+    LEFT JOIN user u ON p.UserID = u.UserID
+    WHERE r.NurseID = ? 
+      AND r.RequestStatus = 'pending'
+";
+
 
         $stmt = $conn->prepare($private_query);
         $stmt->bind_param("i", $nurse_id);
@@ -152,12 +186,16 @@ function getNurseRequests($nurse_id, $status, $conn)
         //                  AND r.RequestStatus = 'pending'";
 
 
-        $public_query = "SELECT r.*, 
+$public_query = "SELECT r.*, 
+                        u.FullName AS PatientFullName,
                         a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
-                        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded , s.Name AS Type
+                        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded, 
+                        s.Name AS Type
                  FROM request r
                  JOIN request_applications ra ON r.RequestID = ra.RequestID
                  LEFT JOIN address a ON r.AddressID = a.AddressID
+                 LEFT JOIN patient p ON r.PatientID = p.PatientID
+                 LEFT JOIN user u ON p.UserID = u.UserID
                  LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
                  LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
                  LEFT JOIN service s ON r.Type = s.ServiceID
@@ -165,6 +203,7 @@ function getNurseRequests($nurse_id, $status, $conn)
                    AND ra.ApplicationStatus = 'pending' 
                    AND r.RequestStatus = 'pending'
                  GROUP BY r.RequestID";
+
 
 
         $stmt = $conn->prepare($public_query);
@@ -178,9 +217,16 @@ function getNurseRequests($nurse_id, $status, $conn)
     // Case 3: completed Requests
     elseif ($status === 'completed') {
         // Private requests (assigned directly to the nurse)
-        $private_query = "SELECT r.* , s.Name AS Type
-                          FROM request r , service s 
-                          WHERE r.NurseID = ? AND r.RequestStatus = 'completed' AND r.Type = s.ServiceID";
+        $private_query = "SELECT r.*, 
+                         s.Name AS Type,
+                         u.FullName AS PatientFullName
+                  FROM request r
+                  JOIN service s ON r.Type = s.ServiceID
+                  LEFT JOIN patient p ON r.PatientID = p.PatientID
+                  LEFT JOIN user u ON p.UserID = u.UserID
+                  WHERE r.NurseID = ? 
+                    AND r.RequestStatus = 'completed'";
+
         $stmt = $conn->prepare($private_query);
         $stmt->bind_param("i", $nurse_id);
         $stmt->execute();
@@ -214,8 +260,10 @@ function getNurseRequests($nurse_id, $status, $conn)
 $public_query = "
     SELECT 
         r.*, 
+        u.FullName AS PatientFullName,
         a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
-        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded , s.Name AS Type
+        GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded, 
+        s.Name AS Type
     FROM request r
     JOIN request_applications ra 
         ON r.RequestID = ra.RequestID 
@@ -225,9 +273,12 @@ $public_query = "
     LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
     LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
     LEFT JOIN service s ON r.Type = s.ServiceID
+    LEFT JOIN patient p ON r.PatientID = p.PatientID
+    LEFT JOIN user u ON p.UserID = u.UserID
     WHERE r.RequestStatus = 'completed'
     GROUP BY r.RequestID
 ";
+
 
 
 
@@ -413,6 +464,7 @@ $completed_count = count($completed_requests);
                                             <div class="col-md-6">
                                                 <h6>Basic Information</h6>
                                                 <ul class="list-unstyled">
+                                                    <li><strong>Patient Name:</strong> <?php echo htmlspecialchars($request['PatientFullName']); ?></li>
                                                     <li><strong>Type:</strong> <?php echo htmlspecialchars($request['Type']); ?></li>
                                                     <li><strong>Date & Time:</strong> <?php echo $formattedDate; ?> at <?php echo $formattedTime; ?></li>
                                                     <li><strong>Duration:</strong> <?php echo $request['Duration'] ? $request['Duration'] . ' hours' : 'Flexible'; ?></li>
@@ -627,6 +679,7 @@ $completed_count = count($completed_requests);
                                             <div class="col-md-6">
                                                 <h6>Basic Information</h6>
                                                 <ul class="list-unstyled">
+                                                    <li><strong>Patient Name:</strong> <?php echo htmlspecialchars($request['PatientFullName']); ?></li>
                                                     <li><strong>Type:</strong> <?php echo htmlspecialchars($request['Type']); ?></li>
                                                     <li><strong>Date & Time:</strong> <?php echo $formattedDate; ?> at <?php echo $formattedTime; ?></li>
                                                     <li><strong>Duration:</strong> <?php echo $request['Duration'] ? $request['Duration'] . ' hours' : 'Flexible'; ?></li>
@@ -785,6 +838,7 @@ $completed_count = count($completed_requests);
                             <div class="col-md-6">
                                 <h6>Basic Information</h6>
                                 <ul class="list-unstyled">
+                                    <li><strong>Patient Name:</strong> <?php echo htmlspecialchars($request['PatientFullName']); ?></li>
                                     <li><strong>Type:</strong> <?php echo htmlspecialchars($request['Type']); ?></li>
                                     <li><strong>Date & Time:</strong> <?php echo $formattedDate; ?> at <?php echo $formattedTime; ?></li>
                                     <li><strong>Duration:</strong> <?php echo $request['Duration'] ? $request['Duration'] . ' hours' : 'Flexible'; ?></li>

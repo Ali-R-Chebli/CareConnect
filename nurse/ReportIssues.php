@@ -6,20 +6,29 @@ $_SESSION['role'] = 'nurse';
 // $_SESSION['logged_in'] = true;
 
 // Database connection (adjust credentials as needed)
-$db_host = '127.0.0.1';
-$db_user = 'root';
-$db_pass = '';
-$db_name = 'homecare';
+$conn_host = '127.0.0.1';
+$conn_user = 'root';
+$conn_pass = '';
+$conn_name = 'homecare';
 
-$db = new mysqli($db_host, $db_user, $db_pass, $db_name);
+$conn = new mysqli($conn_host, $conn_user, $conn_pass, $conn_name);
 
-if ($db->connect_error) {
-    die("Connection failed: " . $db->connect_error);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
 
 
-
+if (isset($_POST['confirm_logout'])) {
+    // session_destroy();
+    unset($_SESSION['email']);
+    unset($_SESSION['role']);
+    unset($_SESSION['full_name']);
+    unset($_SESSION['user_id']);
+    session_destroy();
+    header("Location: ../homepage/mainpage.php");
+    exit();
+}
 
 
 // Handle form submission
@@ -39,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $reported_role = 'admin';
         } elseif ($type === 'Request') {
             // Get patient ID from the request
-            $stmt = $db->prepare("SELECT PatientID FROM request WHERE RequestID = ?");
+            $stmt = $conn->prepare("SELECT PatientID FROM request WHERE RequestID = ?");
             $stmt->bind_param("i", $request_id);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -70,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!isset($error)) {
                 if ($requestId == null) {
                     // Insert report without RequestID
-                    $stmt = $db->prepare("INSERT INTO report 
+                    $stmt = $conn->prepare("INSERT INTO report 
                     (ReporterID, ReporterRole, ReportedID, ReportedRole, File, Type, Description, Status, Date) 
                                 VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', CURDATE())");
 
@@ -88,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
 
                     // Insert report with requestid 
-                    $stmt = $db->prepare("INSERT INTO report (ReporterID, ReporterRole, ReportedID, ReportedRole, RequestID, File, Type, Description, Status, Date) 
+                    $stmt = $conn->prepare("INSERT INTO report (ReporterID, ReporterRole, ReportedID, ReportedRole, RequestID, File, Type, Description, Status, Date) 
                                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', CURDATE())");
 
                     $stmt->bind_param("isssisss", $_SESSION['user_id'], $_SESSION['role'], $reported_id, $reported_role, $request_id, $file_name, $type, $description);
@@ -98,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($stmt->execute()) {
                     $success = "Report submitted successfully!";
                 } else {
-                    $error = "Error submitting report: " . $db->error;
+                    $error = "Error submitting report: " . $conn->error;
                 }
                 $stmt->close();
             }
@@ -140,7 +149,7 @@ WHERE
 ";
 
 
-    $stmt = $db->prepare($query);
+    $stmt = $conn->prepare($query);
     $stmt->bind_param("ii", $nurse_id, $nurse_id);
     $stmt->execute();
     $result = $stmt->get_result();

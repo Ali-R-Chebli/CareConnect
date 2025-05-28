@@ -1,9 +1,20 @@
 <?php
 session_start();
+require_once 'db_connection.php';
 // $_SESSION['user_id'] = 1; // Example: manually set nurse ID
 // $_SESSION['user_type'] = 'nurse';
 // $_SESSION['logged_in'] = true;
 
+if (isset($_POST['confirm_logout'])) {
+    // session_destroy();
+    unset($_SESSION['email']);
+    unset($_SESSION['role']);
+    unset($_SESSION['full_name']);
+    unset($_SESSION['user_id']);
+    session_destroy();
+    header("Location: ../homepage/mainpage.php");
+    exit();
+}
 
 function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
 {
@@ -105,21 +116,27 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
                                 <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
                                     <?php
                                     // Database connection
-                                    require_once 'db_connection.php';
+                                    
 
                                     // Query to get private requests assigned to this nurse
-                                    $query = "SELECT r.*, 
+$query = "SELECT r.*, 
+                 u.FullName AS PatientFullName,
                  a.Country, a.City, a.Street, a.Building, a.Latitude, a.Longitude, a.Notes AS AddressNotes,
-                 GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded , s.Name AS Type
+                 GROUP_CONCAT(cn.Name SEPARATOR ', ') AS CareNeeded, 
+                 s.Name AS Type
           FROM request r
           LEFT JOIN address a ON r.AddressID = a.AddressID
           LEFT JOIN patient p ON r.PatientID = p.PatientID
+          LEFT JOIN user u ON p.UserID = u.UserID
           LEFT JOIN request_care_needed rcn ON r.RequestID = rcn.RequestID
           LEFT JOIN care_needed cn ON rcn.CareID = cn.CareID
           LEFT JOIN service s ON r.Type = s.ServiceID
-          WHERE r.ispublic = 0 AND r.NurseID = ? AND r.RequestStatus = 'pending'
+          WHERE r.ispublic = 0 
+            AND r.NurseID = ? 
+            AND r.RequestStatus = 'pending'
           GROUP BY r.RequestID
           ORDER BY r.Date DESC";
+
 
                                     $stmt = $conn->prepare($query);
                                     $stmt->bind_param("i", $_SESSION['user_id']);
@@ -275,6 +292,7 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
                                                                 <h6>Basic Information</h6>
                                                                 <ul class="list-unstyled">
 
+                                                                    <li><strong>Patient Name:</strong> <?php echo htmlspecialchars($request['PatientFullName']); ?></li>
                                                                     <li><strong>Type:</strong> <?php echo htmlspecialchars($request['Type']); ?></li>
                                                                     <li><strong>Date & Time:</strong> <?php echo $formattedDate; ?> at <?php echo $formattedTime; ?></li>
                                                                     <li><strong>Duration:</strong> <?php echo $request['Duration'] ? $request['Duration'] . ' hours' : 'Flexible'; ?></li>

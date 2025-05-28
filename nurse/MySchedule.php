@@ -7,6 +7,16 @@ require_once 'db_connection.php';
 
 $nurse_id = $_SESSION['user_id'];
 
+if (isset($_POST['confirm_logout'])) {
+    // session_destroy();
+    unset($_SESSION['email']);
+    unset($_SESSION['role']);
+    unset($_SESSION['full_name']);
+    unset($_SESSION['user_id']);
+    session_destroy();
+    header("Location: ../homepage/mainpage.php");
+    exit();
+}
 
 // Handle Delete Schedule
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_schedule'])) {
@@ -625,6 +635,8 @@ if ($weekly_row = $weekly_result->fetch_assoc()) {
             </div>
         </div>
     </div>
+
+    <?php include "logoutmodal.php" ?>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

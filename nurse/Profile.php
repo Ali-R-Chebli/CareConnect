@@ -9,6 +9,16 @@ require_once 'db_connection.php';
 $nurse_id = $_SESSION['user_id'];
 
 
+if (isset($_POST['confirm_logout'])) {
+    // session_destroy();
+    unset($_SESSION['email']);
+    unset($_SESSION['role']);
+    unset($_SESSION['full_name']);
+    unset($_SESSION['user_id']);
+    session_destroy();
+    header("Location: ../homepage/mainpage.php");
+    exit();
+}
 
 // Fetch nurse and user data
 $nurse_data = [];

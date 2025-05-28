@@ -1,7 +1,7 @@
 <?php
 session_start();
 // Manually set session variables as provided
-// $_SESSION['user_id'] = 1; 
+// $_SESSION['nurse_id'] = 1; 
 $_SESSION['role'] = 'nurse';
 // $_SESSION['logged_in'] = true;
 
@@ -24,7 +24,7 @@ if (isset($_POST['confirm_logout'])) {
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['nurse_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $stmt->bind_param(
                         "isissss",
-                        $_SESSION['user_id'],
+                        $_SESSION['nurse_id'],
                         $_SESSION['role'],
                         $reported_id,
                         $reported_role,
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $conn->prepare("INSERT INTO report (ReporterID, ReporterRole, ReportedID, ReportedRole, RequestID, File, Type, Description, Status, Date) 
                                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', CURDATE())");
 
-                    $stmt->bind_param("isssisss", $_SESSION['user_id'], $_SESSION['role'], $reported_id, $reported_role, $request_id, $file_name, $type, $description);
+                    $stmt->bind_param("isssisss", $_SESSION['nurse_id'], $_SESSION['role'], $reported_id, $reported_role, $request_id, $file_name, $type, $description);
                     // insert report with request id
                 }
 
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Fetch all requests related to the nurse
-$nurse_id = $_SESSION['user_id'];
+$nurse_id = $_SESSION['nurse_id'];
 $requests = [];
 try {
     $query = "SELECT 

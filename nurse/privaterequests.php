@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'db_connection.php';
-// $_SESSION['user_id'] = 1; // Example: manually set nurse ID
+// $_SESSION['nurse_id'] = 1; // Example: manually set nurse ID
 // $_SESSION['user_type'] = 'nurse';
 // $_SESSION['logged_in'] = true;
 
@@ -10,7 +10,7 @@ if (isset($_POST['confirm_logout'])) {
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['nurse_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
@@ -139,7 +139,7 @@ $query = "SELECT r.*,
 
 
                                     $stmt = $conn->prepare($query);
-                                    $stmt->bind_param("i", $_SESSION['user_id']);
+                                    $stmt->bind_param("i", $_SESSION['nurse_id']);
                                     $stmt->execute();
                                     $result = $stmt->get_result();
 
@@ -212,7 +212,7 @@ $query = "SELECT r.*,
 
 
 
-                                                        $hasConflict = hasTimeConflict($conn, $_SESSION['user_id'], $request['Date'], $request['Time'], $request['Duration']);
+                                                        $hasConflict = hasTimeConflict($conn, $_SESSION['nurse_id'], $request['Date'], $request['Time'], $request['Duration']);
 
 
                                                 if ($hasConflict) {

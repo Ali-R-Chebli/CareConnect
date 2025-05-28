@@ -3,14 +3,14 @@ require '../connect.php';
 
 
 session_start();
-$patient_id = $_SESSION['user_id'] ;
+$patient_id = $_SESSION['patient_id'];
 
 if (isset($_POST['confirm_logout'])) {
     // session_destroy();
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['patient_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
@@ -259,64 +259,101 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Handle service filter
 $service_filter = isset($_GET['service']) ? $_GET['service'] : '';
 
-// Fetch nurses
-$sql_nurses = "SELECT n.NurseID, u.FullName, n.Bio, n.image_path, na.Specialization, na.Gender, na.Language, u.DateOfBirth, a.City, a.Street, AVG(r.Rating) AS AvgRating, COUNT(r.RID) AS ReviewCount
-               FROM nurse n
-               INNER JOIN user u ON n.UserID = u.UserID
-               INNER JOIN nurseapplication na ON n.NAID = na.NAID
-               INNER JOIN address a ON u.AddressID = a.AddressID
-               LEFT JOIN rating r ON n.NurseID = r.NurseID
-               INNER JOIN nurseservices ns ON n.NurseID = ns.NurseID
-               INNER JOIN service s ON ns.ServiceID = s.ServiceID
-               WHERE n.Availability = 1";
+// Fetch nurses with proper service filtering
+$sql_nurses = "SELECT 
+    n.NurseID, 
+    u.FullName, 
+    n.Bio, 
+    n.image_path, 
+    na.Specialization, 
+    na.Gender, 
+    na.Language, 
+    u.DateOfBirth, 
+    a.City, 
+    a.Street, 
+    IFNULL(AVG(r.Rating), 0) AS AvgRating, 
+    COUNT(r.RID) AS ReviewCount
+FROM nurse n
+INNER JOIN user u ON n.UserID = u.UserID
+LEFT JOIN nurseapplication na ON n.NAID = na.NAID
+LEFT JOIN address a ON u.AddressID = a.AddressID
+LEFT JOIN rating r ON n.NurseID = r.NurseID";
+
+// Add service join if filtering by service
 if ($service_filter && $service_filter !== 'All') {
-    $sql_nurses .= " AND s.Name = '$service_filter'";
+    $sql_nurses .= " INNER JOIN nurseservices ns ON n.NurseID = ns.NurseID
+                     INNER JOIN service s ON ns.ServiceID = s.ServiceID AND s.Name = ?";
 }
-$sql_nurses .= " GROUP BY n.NurseID ORDER BY AvgRating DESC";
-$result_nurses = $conn->query($sql_nurses);
+
+$sql_nurses .= " WHERE n.Availability = 1
+                 GROUP BY n.NurseID
+                 ORDER BY AvgRating DESC";
+
+// Prepare statement to prevent SQL injection
+$stmt = $conn->prepare($sql_nurses);
+if ($service_filter && $service_filter !== 'All') {
+    $stmt->bind_param("s", $service_filter);
+}
+$stmt->execute();
+$result_nurses = $stmt->get_result();
+
 $nurses = [];
 while ($row = $result_nurses->fetch_assoc()) {
+    // Calculate age
     $dob = new DateTime($row['DateOfBirth']);
     $now = new DateTime();
     $row['Age'] = $now->diff($dob)->y;
 
+    // Get services with prepared statement
     $nurse_id = $row['NurseID'];
-    $sql_services = "SELECT s.ServiceID, s.Name FROM nurseservices ns INNER JOIN service s ON ns.ServiceID = s.ServiceID WHERE ns.NurseID = '$nurse_id'";
-    $result_services = $conn->query($sql_services);
-    $row['services'] = [];
-    while ($service_row = $result_services->fetch_assoc()) {
-        $row['services'][] = $service_row;
-    }
+    $stmt_services = $conn->prepare("SELECT s.ServiceID, s.Name 
+                                   FROM nurseservices ns 
+                                   INNER JOIN service s ON ns.ServiceID = s.ServiceID 
+                                   WHERE ns.NurseID = ?");
+    $stmt_services->bind_param("i", $nurse_id);
+    $stmt_services->execute();
+    $result_services = $stmt_services->get_result();
+    $row['services'] = $result_services->fetch_all(MYSQLI_ASSOC);
 
-    $sql_schedules = "SELECT ScheduleID, Date, StartTime, EndTime, Notes 
-                      FROM schedule 
-                      WHERE NurseID = '$nurse_id' AND Status = 'available' AND Date >= CURDATE()";
-    $result_schedules = $conn->query($sql_schedules);
+    // Get available schedules with prepared statement
+    $stmt_schedules = $conn->prepare("SELECT ScheduleID, Date, StartTime, EndTime, Notes 
+                                     FROM schedule 
+                                     WHERE NurseID = ? AND Status = 'available' AND Date >= CURDATE()");
+    $stmt_schedules->bind_param("i", $nurse_id);
+    $stmt_schedules->execute();
+    $result_schedules = $stmt_schedules->get_result();
+
     $row['schedules'] = [];
     while ($schedule_row = $result_schedules->fetch_assoc()) {
         $schedule_date = $schedule_row['Date'];
-        $sql_booked_duration = "SELECT SUM(Duration) AS TotalDuration 
-                                FROM request 
-                                WHERE NurseID = '$nurse_id' AND Date = '$schedule_date' AND RequestStatus = 'pending'";
-        $result_booked_duration = $conn->query($sql_booked_duration);
-        $booked_duration = $result_booked_duration->fetch_assoc()['TotalDuration'] ?? 0;
+        $stmt_booked = $conn->prepare("SELECT SUM(Duration) AS TotalDuration 
+                                      FROM request 
+                                      WHERE NurseID = ? AND Date = ? AND RequestStatus = 'pending'");
+        $stmt_booked->bind_param("is", $nurse_id, $schedule_date);
+        $stmt_booked->execute();
+        $booked_result = $stmt_booked->get_result();
+        $booked_duration = $booked_result->fetch_assoc()['TotalDuration'] ?? 0;
+
         $available_duration = (strtotime($schedule_row['EndTime']) - strtotime($schedule_row['StartTime'])) / 3600;
         if ($booked_duration < $available_duration) {
             $row['schedules'][] = $schedule_row;
         }
     }
 
-    $sql_weekly = "SELECT AvailabilityID, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, StartTime, EndTime 
-                   FROM weekly_availability 
-                   WHERE NurseID = '$nurse_id'";
-    $result_weekly = $conn->query($sql_weekly);
-    $row['weekly_availability'] = [];
-    while ($weekly_row = $result_weekly->fetch_assoc()) {
-        $row['weekly_availability'][] = $weekly_row;
-    }
+    // Get weekly availability
+    $stmt_weekly = $conn->prepare("SELECT AvailabilityID, Monday, Tuesday, Wednesday, Thursday, 
+                                  Friday, Saturday, Sunday, StartTime, EndTime 
+                                  FROM weekly_availability 
+                                  WHERE NurseID = ?");
+    $stmt_weekly->bind_param("i", $nurse_id);
+    $stmt_weekly->execute();
+    $result_weekly = $stmt_weekly->get_result();
+    $row['weekly_availability'] = $result_weekly->fetch_all(MYSQLI_ASSOC);
 
     $nurses[] = $row;
 }
+
+
 
 // Fetch services
 $sql_services = "SELECT DISTINCT Name FROM service WHERE ServiceID > 0";
@@ -326,6 +363,9 @@ while ($row = $result_services->fetch_assoc()) {
     $services[] = $row['Name'];
 }
 
+
+
+// Fetch selected nurse
 // Fetch selected nurse
 $selected_nurse = null;
 $certifications = [];
@@ -333,17 +373,38 @@ $schedule = [];
 $weekly_availability = [];
 $prices = [];
 $image_base_path = '../nurse/';
+
 if (isset($_GET['nurse_id']) && is_numeric($_GET['nurse_id']) && $_GET['nurse_id'] > 0) {
-    $nurse_id = $_GET['nurse_id'];
-    $sql_nurse = "SELECT n.NurseID, u.FullName, n.Bio, n.image_path, na.Specialization, na.Gender, na.Language, u.DateOfBirth, a.City, a.Street, AVG(r.Rating) AS AvgRating, COUNT(r.RID) AS ReviewCount
-                  FROM nurse n
-                  INNER JOIN user u ON n.UserID = u.UserID
-                  INNER JOIN nurseapplication na ON n.NAID = na.NAID
-                  INNER JOIN address a ON u.AddressID = a.AddressID
-                  LEFT JOIN rating r ON n.NurseID = r.NurseID
-                  WHERE n.NurseID = '$nurse_id'
-                  GROUP BY n.NurseID";
-    $result_nurse = $conn->query($sql_nurse);
+    $nurse_id = (int)$_GET['nurse_id'];
+
+    // Main nurse query with proper LEFT JOINs and prepared statement
+    $sql_nurse = "SELECT 
+        n.NurseID, 
+        u.FullName, 
+        n.Bio, 
+        n.image_path, 
+        na.Specialization, 
+        na.Gender, 
+        na.Language, 
+        u.DateOfBirth, 
+        a.City, 
+        a.Street, 
+        IFNULL(AVG(r.Rating), 0) AS AvgRating, 
+        COUNT(r.RID) AS ReviewCount
+    FROM nurse n
+    INNER JOIN user u ON n.UserID = u.UserID  
+    LEFT JOIN nurseapplication na ON n.NAID = na.NAID  
+    LEFT JOIN address a ON u.AddressID = a.AddressID  
+    LEFT JOIN rating r ON n.NurseID = r.NurseID  
+    WHERE n.NurseID = ?
+    GROUP BY n.NurseID, u.FullName, n.Bio, n.image_path, na.Specialization, 
+             na.Gender, na.Language, u.DateOfBirth, a.City, a.Street";
+
+    $stmt_nurse = $conn->prepare($sql_nurse);
+    $stmt_nurse->bind_param("i", $nurse_id);
+    $stmt_nurse->execute();
+    $result_nurse = $stmt_nurse->get_result();
+    
     if ($result_nurse->num_rows > 0) {
         $row = $result_nurse->fetch_assoc();
         $dob = new DateTime($row['DateOfBirth']);
@@ -357,45 +418,76 @@ if (isset($_GET['nurse_id']) && is_numeric($_GET['nurse_id']) && $_GET['nurse_id
         $selected_nurse = $row;
     }
 
-    $sql_certs = "SELECT Name, Image, Comment FROM certification WHERE NurseID = '$nurse_id' AND Status = 'approved'";
-    $result_certs = $conn->query($sql_certs);
+    // Certifications with prepared statement
+    $sql_certs = "SELECT Name, Image, Comment FROM certification WHERE NurseID = ? AND Status = 'approved'";
+    $stmt_certs = $conn->prepare($sql_certs);
+    $stmt_certs->bind_param("i", $nurse_id);
+    $stmt_certs->execute();
+    $result_certs = $stmt_certs->get_result();
+    
     while ($cert_row = $result_certs->fetch_assoc()) {
         $cert_row['Image'] = !empty($cert_row['Image']) ?  "../nurse/" . $cert_row['Image'] :
-             '/nurse/uploads/certifications/default.jpg';
+            '/nurse/uploads/certifications/default.jpg';
         $certifications[] = $cert_row;
     }
 
+    // Schedule with prepared statements
     $sql_schedule = "SELECT ScheduleID, Date, StartTime, EndTime, Notes 
                      FROM schedule 
-                     WHERE NurseID = '$nurse_id' AND Status = 'available' AND Date >= CURDATE()";
-    $result_schedule = $conn->query($sql_schedule);
+                     WHERE NurseID = ? AND Status = 'available' AND Date >= CURDATE()";
+    $stmt_schedule = $conn->prepare($sql_schedule);
+    $stmt_schedule->bind_param("i", $nurse_id);
+    $stmt_schedule->execute();
+    $result_schedule = $stmt_schedule->get_result();
+    
     while ($sched_row = $result_schedule->fetch_assoc()) {
         $schedule_date = $sched_row['Date'];
+        
         $sql_booked_duration = "SELECT SUM(Duration) AS TotalDuration 
-                                FROM request 
-                                WHERE NurseID = '$nurse_id' AND Date = '$schedule_date' AND RequestStatus = 'pending'";
-        $result_booked_duration = $conn->query($sql_booked_duration);
+                               FROM request 
+                               WHERE NurseID = ? AND Date = ? AND RequestStatus = 'pending'";
+        $stmt_booked = $conn->prepare($sql_booked_duration);
+        $stmt_booked->bind_param("is", $nurse_id, $schedule_date);
+        $stmt_booked->execute();
+        $result_booked_duration = $stmt_booked->get_result();
+        
         $booked_duration = $result_booked_duration->fetch_assoc()['TotalDuration'] ?? 0;
         $available_duration = (strtotime($sched_row['EndTime']) - strtotime($sched_row['StartTime'])) / 3600;
+        
         if ($booked_duration < $available_duration) {
             $schedule[] = $sched_row;
         }
     }
 
-    $sql_weekly_availability = "SELECT AvailabilityID, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, StartTime, EndTime 
+    // Weekly availability
+    $sql_weekly_availability = "SELECT AvailabilityID, Monday, Tuesday, Wednesday, Thursday, 
+                               Friday, Saturday, Sunday, StartTime, EndTime 
                                FROM weekly_availability 
-                               WHERE NurseID = '$nurse_id'";
-    $result_weekly_availability = $conn->query($sql_weekly_availability);
+                               WHERE NurseID = ?";
+    $stmt_weekly = $conn->prepare($sql_weekly_availability);
+    $stmt_weekly->bind_param("i", $nurse_id);
+    $stmt_weekly->execute();
+    $result_weekly_availability = $stmt_weekly->get_result();
+    
     while ($weekly_row = $result_weekly_availability->fetch_assoc()) {
         $weekly_availability[] = $weekly_row;
     }
 
-    $sql_prices = "SELECT s.ServiceID, s.Name, ns.Price FROM nurseservices ns INNER JOIN service s ON ns.ServiceID = s.ServiceID WHERE ns.NurseID = '$nurse_id'";
-    $result_prices = $conn->query($sql_prices);
+    // Prices
+    $sql_prices = "SELECT s.ServiceID, s.Name, ns.Price 
+                  FROM nurseservices ns 
+                  INNER JOIN service s ON ns.ServiceID = s.ServiceID 
+                  WHERE ns.NurseID = ?";
+    $stmt_prices = $conn->prepare($sql_prices);
+    $stmt_prices->bind_param("i", $nurse_id);
+    $stmt_prices->execute();
+    $result_prices = $stmt_prices->get_result();
+    
     while ($price_row = $result_prices->fetch_assoc()) {
         $prices[] = $price_row;
     }
 }
+
 
 // Fetch care options
 $sql_care_needed = "SELECT Name FROM care_needed";
@@ -522,7 +614,7 @@ while ($row = $result_care_needed->fetch_assoc()) {
     </div>
 
     <!-- Nurse Profile Modal -->
-    <!-- Nurse Profile Modal -->
+
     <div class="modal fade" id="nurseProfileModal" tabindex="-1" role="dialog" aria-labelledby="nurseProfileModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -674,7 +766,7 @@ while ($row = $result_care_needed->fetch_assoc()) {
                                                                 <h6 class="card-title"><?php echo htmlspecialchars($cert['Name']); ?></h6>
                                                                 <?php if ($cert['Image']): ?>
                                                                     <!-- <img src="" class="img-fluid mb-2" alt="Certification" width="100"> -->
-                                                                    
+
                                                                 <?php endif; ?>
                                                             </div>
                                                         </div>
@@ -728,6 +820,11 @@ while ($row = $result_care_needed->fetch_assoc()) {
             </div>
         </div>
     </div>
+    <!-- nurse profile modal2 -->
+
+
+
+
 
     <!-- Service Request Modal -->
     <div class="modal fade" id="serviceRequestModal" tabindex="-1" role="dialog" aria-labelledby="serviceRequestModalLabel" aria-hidden="true">
@@ -897,11 +994,6 @@ while ($row = $result_care_needed->fetch_assoc()) {
                 });
             }
         });
-
-
-        
-
-
     </script>
 </body>
 

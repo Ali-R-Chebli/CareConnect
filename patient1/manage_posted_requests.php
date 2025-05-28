@@ -2,14 +2,14 @@
 require '../connect.php';
 
 session_start();
-$patient_id = $_SESSION['user_id'] ;
+$patient_id = $_SESSION['patient_id'] ;
 
 if (isset($_POST['confirm_logout'])) {
     // session_destroy();
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['patient_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
@@ -358,7 +358,7 @@ foreach ($posted_requests as $request) {
                                                                 <div class="d-flex align-items-start mb-3">
 
 
-                                                                    <img src="<?php echo !empty($nurse['image_path']) ? "../nurse/" . htmlspecialchars($nurse['image_path']) : '../nurse/uploads/profile_photos/default.png'; ?>"
+                                                                    <img src="<?php echo !empty($nurse['image_path']) ? "../nurse/" . htmlspecialchars($nurse['image_path']) : '../nurse/uploads/profile_photos/default.jpg'; ?>"
                                                                     class="rounded-circle profile-img me-3" width="50" height="50" alt="Nurse">
 
 
@@ -431,7 +431,7 @@ foreach ($posted_requests as $request) {
                                 
 
 
-                                                                              <img src="<?php echo !empty($application['image_path']) ? "../nurse/" . htmlspecialchars($application['image_path']) : '../nurse/uploads/profile_photos/default.png'; ?>"
+                                                                              <img src="<?php echo !empty($application['image_path']) ? "../nurse/" . htmlspecialchars($application['image_path']) : '../nurse/uploads/profile_photos/default.jpg'; ?>"
                                                 class="rounded-circle profile-img me-3" width="50" height="50" alt="Nurse">
 
                                                                     <div>
@@ -500,7 +500,7 @@ foreach ($posted_requests as $request) {
                                          
                                             
 
-                                                 <img src="<?php echo !empty($selected_nurse['image_path']) ? "../nurse/" . htmlspecialchars($selected_nurse['image_path']) : '../nurse/uploads/profile_photos/default.png'; ?>"
+                                                 <img src="<?php echo !empty($selected_nurse['image_path']) ? "../nurse/" . htmlspecialchars($selected_nurse['image_path']) : '../nurse/uploads/profile_photos/default.jpg'; ?>"
                                                 class="rounded-circle mb-3" width="150" height="150" alt="Nurse">
 
 
@@ -564,10 +564,7 @@ foreach ($posted_requests as $request) {
                                                                     <div class="card h-100">
                                                                         <div class="card-body">
                                                                             <h6 class="card-title"><?php echo htmlspecialchars($cert['Name']); ?></h6>
-                                                                            <?php if ($cert['Image']): ?>
-                                                                                <img src="<?php echo htmlspecialchars($cert['Image']); ?>" 
-                                                                                     class="img-fluid mb-2" alt="Certification" style="max-width: 100px;">
-                                                                            <?php endif; ?>
+                                                                           
                                                                             <p class="small text-muted"><?php echo htmlspecialchars($cert['Comment'] ?: 'No additional comments.'); ?></p>
                                                                         </div>
                                                                     </div>

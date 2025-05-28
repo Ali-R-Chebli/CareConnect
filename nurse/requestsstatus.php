@@ -11,13 +11,13 @@ if (isset($_POST['confirm_logout'])) {
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['nurse_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
 }
 
-$nurse_id = $_SESSION['user_id'];
+$nurse_id = $_SESSION['nurse_id'];
 
 
 
@@ -565,7 +565,7 @@ $completed_count = count($completed_requests);
 
 
 
-                                                        $hasConflict = hasTimeConflict($conn, $_SESSION['user_id'], $request['Date'], $request['Time'], $request['Duration']);
+                                                        $hasConflict = hasTimeConflict($conn, $_SESSION['nurse_id'], $request['Date'], $request['Time'], $request['Duration']);
 
 
                                                 if ($hasConflict) {

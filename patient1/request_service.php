@@ -9,7 +9,7 @@ if (isset($_POST['confirm_logout'])) {
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['patient_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
@@ -23,7 +23,7 @@ if (!$conn) {
 }
 
 // Fetch patient address (hardcoded patient_id = 1)
-$patient_id = $_SESSION['user_id'] ;
+$patient_id = $_SESSION['patient_id'] ;
 
 
 
@@ -576,6 +576,19 @@ if ($success) {
                                                         <input type="text" class="form-control" id="city" name="city" placeholder="City (e.g., New York)" value="<?php echo isset($form_data['city']) ? htmlspecialchars($form_data['city']) : ''; ?>" required>
                                                         <div class="invalid-feedback">Please enter the city.</div>
                                                     </div>
+                                                    <!-- from here  -->
+                                                    <div class="col-12 mb-2">
+                                                        <label class="form-label">Latitude <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" id="Latitude" name="Latitude" placeholder="" value="<?php echo isset($form_data['Latitude']) ? htmlspecialchars($form_data['Latitude']) : ''; ?>" required>
+                                                        <div class="invalid-feedback">Please enter the Latitude.</div>
+                                                    </div>
+                                                    <div class="col-12 mb-2">
+                                                        <label class="form-label">Longitude <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" id="Longitude" name="Longitude" placeholder="" value="<?php echo isset($form_data['Longitude']) ? htmlspecialchars($form_data['Longitude']) : ''; ?>" required>
+                                                        <div class="invalid-feedback">Please enter the Longitude.</div>
+                                                    </div>
+                                                    <!-- to here  -->
+
                                                 </div>
                                                 <button type="button" class="btn btn-sm btn-outline-primary mt-2 fw-bold" id="detectAddressBtn">
                                                     <i class="fas fa-location-arrow me-1"></i> Use My Current Location
@@ -861,6 +874,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('city').value = '<?php echo htmlspecialchars($patient_address['City'] ?? ''); ?>';
             document.getElementById('addressStreet').value = '<?php echo htmlspecialchars($patient_address['Street'] ?? ''); ?>';
             document.getElementById('addressBuilding').value = '<?php echo htmlspecialchars($patient_address['Building'] ?? ''); ?>';
+            document.getElementById('Latitude').value = '<?php echo htmlspecialchars($patient_address['Latitude'] ?? ''); ?>';
+            document.getElementById('Longitude').value = '<?php echo htmlspecialchars($patient_address['Longitude'] ?? ''); ?>';
         });
     }
 

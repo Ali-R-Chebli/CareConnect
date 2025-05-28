@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                             $sql = "SELECT PatientID FROM patient WHERE UserID = $userID";
                             $result = mysqli_query($conn, $sql);
                             if ($row = mysqli_fetch_assoc($result)) {
-                                $_SESSION['user_id'] = $row['PatientID'];
+                                $_SESSION['patient_id'] = $row['PatientID'];
                             }
                             header("Location: ../patient1/request_service.php");
                             exit();
@@ -58,15 +58,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                             $sql = "SELECT NurseID FROM nurse WHERE UserID = $userID";
                             $result = mysqli_query($conn, $sql);
                             if ($row = mysqli_fetch_assoc($result)) {
-                                $_SESSION['user_id'] = $row['NurseID'];
+                                $_SESSION['nurse_id'] = $row['NurseID'];
                             }
                             header("Location: ../nurse/publicrequests.php");
                             exit();
-                        case 'staff':
-                            $_SESSION['user_id'] = $user['UserID'];
+                            case 'staff':
+                            $_SESSION['staff_id'] = $row['NurseID'];
                             header("Location: ../staff/applications.php");
                             exit();
-                        case 'admin':
+                            case 'admin':
+                            $_SESSION['admin_id'] = $row['NurseID'];
                             header("Location: ../admin/dashboard.php");
                             exit();
                         default:
@@ -618,11 +619,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                         <p class="text-muted">Request nursing services whenever you need them, with flexible scheduling options.</p>
 
                         <?php
-                        // $newPassword = "admin123";
+                        // $newPassword = "staff123";
                         // $hashedPassword1 = password_hash($newPassword, PASSWORD_BCRYPT);
                         // echo $hashedPassword1 ;
                         ?>
-
 
                     </div>
                 </div>

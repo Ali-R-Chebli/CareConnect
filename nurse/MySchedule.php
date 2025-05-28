@@ -5,14 +5,14 @@ $_SESSION['logged_in'] = true;
 
 require_once 'db_connection.php';
 
-$nurse_id = $_SESSION['user_id'];
+$nurse_id = $_SESSION['nurse_id'];
 
 if (isset($_POST['confirm_logout'])) {
     // session_destroy();
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['nurse_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_weekly_schedule'])
 }
 
 // Check if nurse is logged in
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['nurse_id'])) {
     header("Location: login.php");
     exit();
 }

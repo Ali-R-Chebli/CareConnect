@@ -6,7 +6,7 @@ $_SESSION['logged_in'] = true;
 
 
 require_once 'db_connection.php';
-$nurse_id = $_SESSION['user_id'];
+$nurse_id = $_SESSION['nurse_id'];
 
 
 if (isset($_POST['confirm_logout'])) {
@@ -14,7 +14,7 @@ if (isset($_POST['confirm_logout'])) {
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['nurse_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
@@ -376,10 +376,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="card mb-4 border-0 shadow-sm">
                                     <div class="card-body text-center p-4">
                                         <div class="position-relative d-inline-block">
-                                            <img src="<?= $nurse_data['image_path'] ?? 'https://via.placeholder.com/150' ?>"
-                                                alt="Profile Photo"
-                                                class="profile-img rounded-circle mb-3 border border-3 border-primary"
-                                                id="profilePhotoPreview">
+
+                                            <img src="<?php echo !empty($nurse_data['image_path']) ? htmlspecialchars($nurse_data['image_path']) : 'uploads/profile_photos/default.jpg'; ?>"
+                                                class=" rounded-circle mb-3 mb-3 border border-3 border-primary" width="150" height="150" alt="profile">
+
+
+
+
+
+
                                             <div class="position-absolute bottom-0 end-0 bg-primary rounded-circle p-2 border border-3 border-white">
                                                 <label for="profile_photo" class="mb-0 cursor-pointer">
                                                     <i class="fas fa-camera text-white"></i>
@@ -389,7 +394,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             </div>
                                         </div>
                                         <h4 class="card-title mb-1"><?= htmlspecialchars($user_data['FullName'] ?? '') ?></h4>
-                                        <p class="text-muted mb-2">Nurse ID: <?= $nurse_id ?> <?= $_SESSION['user_id']  ?></p>
+                                        <p class="text-muted mb-2">Nurse ID: <?= $nurse_id ?> <?= $_SESSION['nurse_id']  ?></p>
 
                                         <div class="d-flex justify-content-center gap-2 mb-3">
                                             <a href="mailto:<?= htmlspecialchars($user_data['Email'] ?? '') ?>" class="text-decoration-none">

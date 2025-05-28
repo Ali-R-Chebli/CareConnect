@@ -2,14 +2,14 @@
 require '../connect.php';
 
 session_start();
-$patient_id = $_SESSION['user_id'] ;
+$patient_id = $_SESSION['patient_id'] ;
 
 if (isset($_POST['confirm_logout'])) {
     // session_destroy();
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['patient_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
@@ -116,9 +116,14 @@ if (isset($error)) {
                             </div>
                             <div class="card-body text-center">
                                 <form method="POST" enctype="multipart/form-data">
-                                    <img id="profileImagePreview" class="img-fluid rounded-circle mb-3"
-                                        src="<?php echo htmlspecialchars($patient['image_path'] ?? 'https://via.placeholder.com/150'); ?>" 
-                                        alt="Profile Picture" style="width: 150px; height: 150px; object-fit: cover;">
+
+
+                                    
+                                    <img id="profileImagePreview" src="<?php echo !empty($patient['image_path']) ? htmlspecialchars($patient['image_path']) : '../nurse/uploads/profile_photos/default.jpg'; ?>"
+                                    class=" rounded-circle mb-3" width="150" height="150" alt="profile">
+
+
+
                                     <div class="small font-italic text-muted mb-4">JPG or PNG no larger than 5 MB</div>
                                     <input type="file" id="profileImageUpload" name="image_path" accept="image/jpeg, image/png" style="display: none;">
                                     <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('profileImageUpload').click()">

@@ -3,7 +3,7 @@ session_start();
 require_once 'db_connection.php'; // Make sure this connects like in the simple test
 
 // Check if user is logged in and has user_id
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['nurse_id'])) {
     die("Error: User not logged in.");
 }
 
@@ -13,7 +13,7 @@ if (!isset($_POST['request_id'])) {
 }
 
 // Get nurse ID from session
-$nurse_id = $_SESSION['user_id'];
+$nurse_id = $_SESSION['nurse_id'];
 
 // Get request ID from form
 $request_id = $_POST['request_id'];

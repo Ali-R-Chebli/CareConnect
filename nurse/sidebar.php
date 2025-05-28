@@ -1,6 +1,6 @@
             <!-- Sidebar -->
 <?php
-$scoped_user_id = $_SESSION['user_id']; // scoped variable to avoid conflicts
+$scoped_user_id = $_SESSION['nurse_id']; // scoped variable to avoid conflicts
 
 $sql_nurse_user = "
 SELECT user.FullName

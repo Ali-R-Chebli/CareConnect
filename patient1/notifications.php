@@ -2,14 +2,14 @@
 require '../connect.php';
 
 session_start();
-$patient_id = $_SESSION['user_id'] ;
+$patient_id = $_SESSION['patient_id'] ;
 
 if (isset($_POST['confirm_logout'])) {
     // session_destroy();
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['patient_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();

@@ -1,7 +1,7 @@
 <?php
 require_once 'db_connection.php';
 session_start();
-// $_SESSION['user_id'] = 1; 
+// $_SESSION['nurse_id'] = 1; 
 // $_SESSION['user_type'] = 'nurse';
 // $_SESSION['logged_in'] = true;
 
@@ -13,7 +13,7 @@ if (isset($_POST['confirm_logout'])) {
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['nurse_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
@@ -236,18 +236,18 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
 
                                             <?php
                                             // Check if nurse is available for this request's day
-                                            $isAvailable = isNurseAvailable($conn, $_SESSION['user_id'], $request['Date']);
+                                            $isAvailable = isNurseAvailable($conn, $_SESSION['nurse_id'], $request['Date']);
 
                                             // Check if nurse has already applied
                                             $sql1 = "SELECT * FROM `request_applications` WHERE NurseID = ? AND RequestID = ?";
                                             $stmt1 = $conn->prepare($sql1);
-                                            $stmt1->bind_param("ii", $_SESSION['user_id'], $request["RequestID"]);
+                                            $stmt1->bind_param("ii", $_SESSION['nurse_id'], $request["RequestID"]);
                                             $stmt1->execute();
                                             $result1 = $stmt1->get_result();
                                             $hasApplied = ($result1->num_rows > 0);
 
                                             // Check for time conflicts with in-process requests
-                                            $hasConflict = hasTimeConflict($conn, $_SESSION['user_id'], $request['Date'], $request['Time'], $request['Duration']);
+                                            $hasConflict = hasTimeConflict($conn, $_SESSION['nurse_id'], $request['Date'], $request['Time'], $request['Duration']);
 
                                             if ($hasApplied) {
                                                 echo '<button class="btn btn-secondary" disabled>Already Applied</button>';
@@ -357,7 +357,6 @@ function hasTimeConflict($conn, $nurseId, $newDate, $newTime, $newDuration)
                                                         <li><strong>Service Fee Percentage:</strong> <?php echo $request['ServiceFeePercentage']; ?>%</li>
 
                                                         <li><strong>care needed : </strong> <?php echo $request['CareNeeded']; ?> </li>
-                                                        <li><?php echo $request['RequestID']; ?></li>
                                                     </ul>
                                                 </div>
                                                 <div class="col-md-6">

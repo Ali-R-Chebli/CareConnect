@@ -1,6 +1,6 @@
 <?php 
 session_start();
-// $_SESSION['user_id'] = 1; 
+// $_SESSION['nurse_id'] = 1; 
 // $_SESSION['user_type'] = 'nurse';
 // $_SESSION['logged_in'] = true;
 
@@ -11,14 +11,14 @@ if (isset($_POST['confirm_logout'])) {
     unset($_SESSION['email']);
     unset($_SESSION['role']);
     unset($_SESSION['full_name']);
-    unset($_SESSION['user_id']);
+    unset($_SESSION['nurse_id']);
     session_destroy();
     header("Location: ../homepage/mainpage.php");
     exit();
 }
 
 // Fetch notifications for the current nurse user
-$nurseId = $_SESSION['user_id'];
+$nurseId = $_SESSION['nurse_id'];
 $query = "SELECT * FROM notification 
           WHERE RecipientID = ? AND RecipientType = 'nurse'
           ORDER BY Date DESC";

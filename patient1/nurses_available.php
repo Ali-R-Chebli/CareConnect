@@ -1,12 +1,28 @@
 <?php
 require '../connect.php';
 
+
+session_start();
+$patient_id = $_SESSION['user_id'] ;
+
+if (isset($_POST['confirm_logout'])) {
+    // session_destroy();
+    unset($_SESSION['email']);
+    unset($_SESSION['role']);
+    unset($_SESSION['full_name']);
+    unset($_SESSION['user_id']);
+    session_destroy();
+    header("Location: ../homepage/mainpage.php");
+    exit();
+}
+
+
+
 // Delete old schedules
 $sql_delete_old = "DELETE FROM schedule WHERE Date < CURDATE()";
 $conn->query($sql_delete_old);
 
 // Fetch patient address
-$patient_id = 1;
 $sql_patient_address = "SELECT a.AddressID, a.City, a.Street, a.Building
                        FROM address a
                        INNER JOIN user u ON u.AddressID = a.AddressID
@@ -403,6 +419,12 @@ while ($row = $result_care_needed->fetch_assoc()) {
 </head>
 
 <body>
+
+
+    <?php include "logout.php" ?>
+
+
+
     <div class="container-fluid">
         <div class="row">
             <?php include 'sidebar.php'; ?>
@@ -875,6 +897,11 @@ while ($row = $result_care_needed->fetch_assoc()) {
                 });
             }
         });
+
+
+        
+
+
     </script>
 </body>
 

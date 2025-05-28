@@ -1,8 +1,21 @@
 <?php
 require '../connect.php';
 
+session_start();
+$patient_id = $_SESSION['user_id'] ;
+
+if (isset($_POST['confirm_logout'])) {
+    // session_destroy();
+    unset($_SESSION['email']);
+    unset($_SESSION['role']);
+    unset($_SESSION['full_name']);
+    unset($_SESSION['user_id']);
+    session_destroy();
+    header("Location: ../homepage/mainpage.php");
+    exit();
+}
+
 // Fetch conversations (distinct nurses the patient has messaged)
-$patient_id = 1; // TODO: Replace with actual patient ID
 $sql = "SELECT DISTINCT n.NurseID, u.FullName, ns.ServiceID, s.Name AS ServiceName
         FROM chat c
         JOIN nurse n ON c.RecipientID = n.UserID OR c.SenderID = n.UserID
@@ -122,6 +135,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </main>
         </div>
     </div>
+
+        <?php include "logout.php" ?>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/patient.js"></script>

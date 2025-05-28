@@ -2,6 +2,19 @@
 require '../connect.php';
 require 'algorithm.php';
 
+session_start();
+
+if (isset($_POST['confirm_logout'])) {
+    session_destroy();
+    unset($_SESSION['email']);
+    unset($_SESSION['role']);
+    unset($_SESSION['full_name']);
+    unset($_SESSION['user_id']);
+    session_destroy();
+    header("Location: ../homepage/mainpage.php");
+    exit();
+}
+
 
 // Check database connection
 if (!$conn) {
@@ -10,7 +23,10 @@ if (!$conn) {
 }
 
 // Fetch patient address (hardcoded patient_id = 1)
-$patient_id = 1;
+$patient_id = $_SESSION['user_id'] ;
+
+
+
 $sql_patient_address = "SELECT a.City, a.Street, a.Building, a.Latitude, a.Longitude
                        FROM address a
                        INNER JOIN user u ON u.AddressID = a.AddressID
@@ -813,6 +829,9 @@ if ($success) {
         </div>
     </div>
 </div>
+
+    <?php include "logout.php" ?>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/patient.js"></script>

@@ -1,7 +1,21 @@
 <?php
 require '../connect.php';
 
-$patient_id = 1; // Hardcoded patient ID
+session_start();
+$patient_id = $_SESSION['user_id'] ;
+
+
+if (isset($_POST['confirm_logout'])) {
+    // session_destroy();
+    unset($_SESSION['email']);
+    unset($_SESSION['role']);
+    unset($_SESSION['full_name']);
+    unset($_SESSION['user_id']);
+    session_destroy();
+    header("Location: ../homepage/mainpage.php");
+    exit();
+}    
+
 
 // Automatically reject pending requests with past dates
 $current_date = date('Y-m-d');
@@ -805,6 +819,10 @@ $conn->query($sql);
             <?php endforeach; ?>
         <?php endif; ?>
     <?php endforeach; ?>
+
+
+        <?php include "logout.php" ?>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>

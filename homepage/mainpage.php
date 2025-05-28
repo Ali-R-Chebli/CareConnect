@@ -91,6 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     }
 }
 
+
+
 // Handle Patient Registration
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_patient'])) {
     $full_name = trim($_POST['full_name']);
@@ -101,8 +103,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_patient'])) {
     $date_of_birth = $_POST['date_of_birth'];
     $phone_number = trim($_POST['phone_number']);
 
+    // Address fields (you'll need to add these to your form)
+    $country = trim($_POST['country']);
+    $city = trim($_POST['city']);
+    $street = trim($_POST['street']);
+    $building = trim($_POST['building']);
+    $latitude = trim($_POST['latitude']);
+    $longitude = trim($_POST['longitude']);
+    $address_notes = trim($_POST['address_notes']);
+
     // Validate inputs
-    if (empty($full_name) || empty($email) || empty($password) || empty($confirm_password) || empty($gender) || empty($date_of_birth)) {
+    if (
+        empty($full_name) || empty($email) || empty($password) || empty($confirm_password) ||
+        empty($gender) || empty($date_of_birth) || empty($country) || empty($city) ||
+        empty($street) || empty($building)
+    ) {
         $register_error = 'Please fill in all required fields.';
     } elseif ($password !== $confirm_password) {
         $register_error = 'Passwords do not match.';
@@ -118,38 +133,61 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_patient'])) {
         if ($result->num_rows > 0) {
             $register_error = 'Email already exists. Please use a different email.';
         } else {
-            // Hash password
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            // Start transaction
+            $conn->begin_transaction();
 
-            // Insert into user table
-            $stmt = $conn->prepare("INSERT INTO user (FullName, Gender, DateOfBirth, PhoneNumber, Email, Password, Role, Status) 
-                                   VALUES (?, ?, ?, ?, ?, ?, 'patient', 'active')");
-            $stmt->bind_param("ssssss", $full_name, $gender, $date_of_birth, $phone_number, $email, $hashed_password);
-
-            if ($stmt->execute()) {
-                $user_id = $stmt->insert_id;
-
-                // Insert into patient table
-                $stmt = $conn->prepare("INSERT INTO patient (UserID) VALUES (?)");
-                $stmt->bind_param("i", $user_id);
+            try {
+                // Insert address first
+                $stmt = $conn->prepare("INSERT INTO address (Country, City, Street, Building, Latitude, Longitude, Notes) 
+                                       VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("ssssdds", $country, $city, $street, $building, $latitude, $longitude, $address_notes);
                 $stmt->execute();
+                $address_id = $stmt->insert_id;
+                $stmt->close();
 
-                // Set session variables
-                $_SESSION['user_id'] = $user_id;
-                $_SESSION['email'] = $email;
-                $_SESSION['role'] = 'patient';
-                $_SESSION['full_name'] = $full_name;
+                // Hash password
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-                // Redirect to patient dashboard
-                header("Location: ../patient1/request_service.php");
-                exit();
-            } else {
-                $register_error = 'Registration failed. Please try again.';
+                // Insert into user table with address ID
+                $stmt = $conn->prepare("INSERT INTO user (FullName, Gender, DateOfBirth, PhoneNumber, Email, Password, Role, Status, AddressID) 
+                                       VALUES (?, ?, ?, ?, ?, ?, 'patient', 'active', ?)");
+                $stmt->bind_param("ssssssi", $full_name, $gender, $date_of_birth, $phone_number, $email, $hashed_password, $address_id);
+
+                if ($stmt->execute()) {
+                    $user_id = $stmt->insert_id;
+
+                    // Insert into patient table
+                    $stmt = $conn->prepare("INSERT INTO patient (UserID) VALUES (?)");
+                    $stmt->bind_param("i", $user_id);
+                    $stmt->execute();
+
+                    // Commit transaction
+                    $conn->commit();
+
+                    // Set session variables
+                    $_SESSION['user_id'] = $user_id;
+                    $_SESSION['email'] = $email;
+                    $_SESSION['role'] = 'patient';
+                    $_SESSION['full_name'] = $full_name;
+
+                    // Redirect to patient dashboard
+                    header("Location: ../patient1/request_service.php");
+                    exit();
+                } else {
+                    $register_error = 'Registration failed. Please try again.';
+                    $conn->rollback();
+                }
+            } catch (Exception $e) {
+                $conn->rollback();
+                $register_error = 'Registration failed: ' . $e->getMessage();
             }
         }
         $stmt->close();
     }
 }
+
+
+
 
 // Handle Nurse Application/Registration
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
@@ -1095,6 +1133,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                                     <label for="phone_number" class="form-label">Phone Number</label>
                                     <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
                                 </div>
+                                <!-- Address Section -->
+                                <h5 class="mb-3 mt-4">Address Information</h5>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="patientCountry" class="form-label">Country</label>
+                                        <input type="text" class="form-control" id="patientCountry" name="country" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="patientCity" class="form-label">City</label>
+                                        <input type="text" class="form-control" id="patientCity" name="city" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="patientStreet" class="form-label">Street</label>
+                                        <input type="text" class="form-control" id="patientStreet" name="street" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="patientBuilding" class="form-label">Building</label>
+                                        <input type="text" class="form-control" id="patientBuilding" name="building" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="patientLatitude" class="form-label">Latitude</label>
+                                        <input type="text" class="form-control" id="patientLatitude" name="latitude" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="patientLongitude" class="form-label">Longitude</label>
+                                        <input type="text" class="form-control" id="patientLongitude" name="longitude" readonly>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="patientAddressNotes" class="form-label">Address Notes</label>
+                                    <textarea class="form-control" id="patientAddressNotes" name="address_notes" rows="2"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-outline-primary" id="patientGetLocationBtn">
+                                        <i class="fas fa-map-marker-alt"></i> Use My Current Location
+                                    </button>
+                                </div>
                                 <div class="mb-3">
                                     <label for="patientRegPassword" class="form-label">Password</label>
                                     <input type="password" class="form-control" id="patientRegPassword" name="password" required>
@@ -1369,6 +1448,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                 });
             }
         });
+
+
+
+        // Add this to your existing JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    const patientGetLocationBtn = document.getElementById('patientGetLocationBtn');
+
+    if (patientGetLocationBtn) {
+        patientGetLocationBtn.addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        // Set latitude and longitude
+                        document.getElementById('patientLatitude').value = position.coords.latitude;
+                        document.getElementById('patientLongitude').value = position.coords.longitude;
+
+                        // Reverse geocoding to get address details
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.address) {
+                                    document.getElementById('patientCountry').value = data.address.country || '';
+                                    document.getElementById('patientCity').value = data.address.city || data.address.town || data.address.village || '';
+                                    document.getElementById('patientStreet').value = data.address.road || '';
+                                    document.getElementById('patientBuilding').value = data.address.house_number || '';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching address details:', error);
+                            });
+                    },
+                    function(error) {
+                        alert('Error getting location: ' + error.message);
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by your browser.');
+            }
+        });
+    }
+});
     </script>
 </body>
 

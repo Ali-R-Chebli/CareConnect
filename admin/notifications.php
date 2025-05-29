@@ -3,7 +3,7 @@ include '../connect.php';
 
 $admin_id = 21;
 
-$notifications_query = "SELECT NotificationID, Message, Date, Status FROM notification WHERE RecipientID = $admin_id AND RecipientType = 'admin' AND SenderType = 'staff' ORDER BY Date DESC";
+$notifications_query = "SELECT n.NotificationID, n.Message,n.SenderID,u.FullName,n.Title, n.Date, n.Status FROM notification n, user u WHERE RecipientID = $admin_id AND RecipientType = 'admin' AND SenderType = 'staff' AND SenderID = UserID  ORDER BY Date DESC";
 $notifications_result = mysqli_query($conn, $notifications_query);
 $notifications = mysqli_fetch_all($notifications_result, MYSQLI_ASSOC);
 
@@ -41,7 +41,8 @@ if (isset($_POST['mark_all_read'])) {
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Message</th>
+                        <th>Send by</th>
+                        <th>Subject</th>
                         <th>Date</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -51,7 +52,8 @@ if (isset($_POST['mark_all_read'])) {
                     <?php foreach ($notifications as $notification): ?>
                         <tr>
                             <td><?php echo $notification['NotificationID']; ?></td>
-                            <td><?php echo $notification['Message']; ?></td>
+                            <td><?php echo $notification['FullName']; ?></td>
+                            <td><?php echo $notification['Title']; ?></td>
                             <td><?php echo date('Y-m-d', strtotime($notification['Date'])); ?></td>
                             <td>
                                 <span class="badge <?php echo $notification['Status'] == 'Unread' ? 'bg-warning' : 'bg-success'; ?>">

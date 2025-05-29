@@ -1,3 +1,40 @@
+<?php
+require '../connect.php';
+
+// Handle form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $siteName = $_POST['siteName'];
+    $contactEmail = $_POST['contactEmail'];
+    $contactPhone = $_POST['contactPhone'];
+    $location = $_POST['location'];
+    $maintenanceMode = $_POST['maintenanceMode'];
+
+    // Update settings table
+    $sql = "UPDATE settings 
+            SET ContactEmail = '$contactEmail', 
+                ContactPhone = '$contactPhone', 
+                Location = '$location', 
+                MaintenanceMode = '$maintenanceMode' ,
+             SiteName = '$siteName'
+              WHERE 1";
+
+    if ($conn->query($sql) === TRUE) {
+        // Redirect to the same page with success parameter
+        header("Location: settings.php?success=1");
+        exit();
+    } else {
+        echo "Error updating settings: " . $conn->error;
+    }
+}
+
+// Fetch current settings to populate the form
+$sql = "SELECT * FROM settings WHERE 1";
+$result = $conn->query($sql);
+$settings = $result->fetch_assoc();
+
+$conn->close();
+?>
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -7,12 +44,12 @@
     <title>Settings - Admin - Home Care</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-        <link rel="stylesheet" href="assets/admin.css">
+    <link rel="stylesheet" href="assets/admin.css">
 </head>
 <body>
     <div class="d-flex">
         <!-- Sidebar -->
-     <?php include 'sidebar.php'; ?>
+        <?php include 'sidebar.php'; ?>
 
         <!-- Main Content -->
         <div class="content flex-grow-1 p-4" style="margin-left: 250px;">
@@ -20,28 +57,28 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">Platform Settings</h5>
-                    <form onsubmit="alert('Settings saved successfully!'); return false;">
+                    <form action="settings.php" method="post">
                         <div class="mb-3">
                             <label for="siteName" class="form-label">Site Name</label>
-                            <input type="text" class="form-control" id="siteName" value="Home Care Platform" required>
+                            <input type="text" class="form-control" id="siteName" name="siteName" value="<?php echo $settings['SiteName']; ?>" required>
                         </div>
                         <div class="mb-3">
                             <label for="contactEmail" class="form-label">Contact Email</label>
-                            <input type="email" class="form-control" id="contactEmail" value="support@homecare.com" required>
+                            <input type="email" class="form-control" id="contactEmail" name="contactEmail" value="<?php echo $settings['ContactEmail']; ?>" required>
                         </div>
                         <div class="mb-3">
                             <label for="contactPhone" class="form-label">Contact Phone</label>
-                            <input type="text" class="form-control" id="contactPhone" value="+1234567890" required>
+                            <input type="text" class="form-control" id="contactPhone" name="contactPhone" value="<?php echo $settings['ContactPhone']; ?>" required>
                         </div>
                         <div class="mb-3">
                             <label for="location" class="form-label">Location</label>
-                            <input type="text" class="form-control" id="location" value="123 Healthcare St, City" required>
+                            <input type="text" class="form-control" id="location" name="location" value="<?php echo $settings['Location']; ?>" required>
                         </div>
                         <div class="mb-3">
                             <label for="maintenanceMode" class="form-label">Maintenance Mode</label>
-                            <select class="form-select" id="maintenanceMode" required>
-                                <option value="off" selected>Off</option>
-                                <option value="on">On</option>
+                            <select class="form-select" id="maintenanceMode" name="maintenanceMode" required>
+                                <option value="0" <?php if ($settings['MaintenanceMode'] == 0) echo 'selected'; ?>>Off</option>
+                                <option value="1" <?php if ($settings['MaintenanceMode'] == 1) echo 'selected'; ?>>On</option>
                             </select>
                         </div>
                         <button type="submit" class="btn btn-primary">Save Settings</button>
@@ -51,19 +88,32 @@
         </div>
     </div>
 
-    <!-- Styles -->
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Arial', sans-serif; }
-        .sidebar .nav-link:hover { background-color: #3498DB; border-radius: 5px; }
-        .sidebar .nav-link.active { background-color: #3498DB; border-radius: 5px; }
-        .card { transition: transform 0.3s ease; }
-        .card:hover { transform: translateY(-10px); }
-        .btn-primary { background-color: #3498DB; border: none; }
-        .btn-primary:hover { background-color: #2980B9; }
-        .shadow-sm { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
-    </style>
+    <!-- Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Success</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Settings saved successfully!
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JavaScript to show modal if success parameter is present -->
+    <script>
+        <?php if (isset($_GET['success']) && $_GET['success'] == '1') { ?>
+            const modal = new bootstrap.Modal(document.getElementById('successModal'));
+            modal.show();
+        <?php } ?>
+    </script>
 </body>
 </html>

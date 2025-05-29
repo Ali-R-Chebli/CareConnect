@@ -1,6 +1,6 @@
 <?php
 require '../connect.php';
-require 'algorithm.php';
+// require 'algorithm.php';
 
 session_start();
 

@@ -19,10 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($fullName) || empty($email) || empty($password) || empty($phoneNumber) || empty($gender) || empty($dateOfBirth) || empty($country) || empty($city) || empty($street)) {
         $alert_message = 'Error: All required fields must be filled';
         $alert_type = 'danger';
-    } elseif (!str_ends_with(strtolower($email), '@gmail.com')) {
-        $alert_message = 'Error: Email must be a Gmail address (e.g., example@gmail.com)';
-        $alert_type = 'danger';
-    } else {
+    // } elseif (!str_ends_with(strtolower($email), '@gmail.com')) {
+    //     $alert_message = 'Error: Email must be a Gmail address (e.g., example@gmail.com)';
+    //     $alert_type = 'danger';
+    } 
+    else {
         // Check if email already exists
         $check_email_query = "SELECT UserID FROM user WHERE Email = '$email'";
         $check_email_result = mysqli_query($conn, $check_email_query);

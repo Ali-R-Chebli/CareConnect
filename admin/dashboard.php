@@ -82,7 +82,7 @@ $activeSubscriptions = mysqli_num_rows(mysqli_query($conn, "SELECT SID FROM subs
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <h5 class="card-title">Staff</h5>
-                                <p class="card-text display-6"><?php echo $staff; ?></p>
+                                <p class="card-text display-6"><?php echo $staff - 1; ?></p>
                             </div>
                         </div>
                     </a>

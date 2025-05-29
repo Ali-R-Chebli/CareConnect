@@ -1,6 +1,7 @@
 <?php
 require '../connect.php';
 
+
 session_start();
 $patient_id = $_SESSION['patient_id'] ;
 
@@ -20,7 +21,7 @@ if (isset($_POST['confirm_logout'])) {
 // Handle report submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $issue_type = $conn->real_escape_string($_POST['issue_type']);
-    $request_id = !empty($_POST['request_id']) ? (int)$_POST['request_id'] : 0; // Default to 0 if not provided
+    $request_id = !empty($_POST['request_id']) ? (int)$_POST['request_id'] : 0;
     $description = $conn->real_escape_string($_POST['description']);
     $folder = NULL;
     $error_message = NULL;
@@ -38,8 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error_message = "Error: Only PDF files are allowed.";
         } elseif ($file_size > $max_file_size) {
             $error_message = "Error: File size exceeds 5MB limit.";
+        } elseif ($_FILES["file"]["error"] !== UPLOAD_ERR_OK) {
+            $error_message = "Error: Failed to upload file.";
         } else {
-            // Create reports directory if it doesn't exist
             if (!file_exists("reports")) {
                 mkdir("reports", 0777, true);
             }
@@ -48,21 +50,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (!$error_message) {
         $reporter_id = $conn->query("SELECT UserID FROM patient WHERE PatientID = $patient_id")->fetch_assoc()['UserID'];
-        $reported_id = 0; // Default if no nurse is associated
-        $reported_role = 'none'; // Default if no nurse is associated
+        $reported_id = 0;
+        $reported_role = 'none';
         if ($request_id !== 0) {
-            $result = $conn->query("SELECT UserID FROM nurse n JOIN request r ON n.NurseID = r.NurseID WHERE r.RequestID = $request_id");
+            $result = $conn->query("SELECT n.UserID FROM request r LEFT JOIN nurse n ON n.NurseID = r.NurseID WHERE r.RequestID = $request_id");
             if ($result && $result->num_rows > 0) {
-                $reported_id = $result->fetch_assoc()['UserID'];
+                $reported_id = $result->fetch_assoc()['UserID'] ?? 0;
                 $reported_role = 'nurse';
             }
         }
-        $sql = "INSERT INTO report(ReporterID, ReporterRole, ReportedID, ReportedRole, RequestID, File, Type, Description, Status, Date) 
+        $sql = "INSERT INTO report (ReporterID, ReporterRole, ReportedID, ReportedRole, RequestID, File, Type, Description, Status, Date) 
                 VALUES ($reporter_id, 'patient', $reported_id, '$reported_role', $request_id, " . ($folder ? "'$folder'" : 'NULL') . ",
                  '$issue_type', '$description', 'pending', CURDATE())";
         
         if ($conn->query($sql) === TRUE) {
-            // Move file if uploaded
             if ($folder && !move_uploaded_file($_FILES["file"]["tmp_name"], $folder)) {
                 $error_message = "Error: Failed to upload file.";
             } else {
@@ -75,11 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Fetch patient’s requests for dropdown (exclude completed requests or those completed more than 7 days ago)
-$sql = "SELECT RequestID, Type, Date 
-        FROM request 
-        WHERE PatientID = $patient_id 
-        AND (RequestStatus != 'completed' OR (RequestStatus = 'completed' AND Date >= DATE_SUB(NOW(), INTERVAL 7 DAY)))";
+// Fetch patient’s requests for dropdown
+$sql = "SELECT r.RequestID, r.Date, s.Name AS Type, u.FullName AS NurseName
+        FROM request r
+        JOIN service s ON s.ServiceID = r.Type
+        LEFT JOIN nurse n ON n.NurseID = r.NurseID
+        LEFT JOIN user u ON u.UserID = n.UserID
+        WHERE r.PatientID = $patient_id
+          AND (r.RequestStatus != 'completed' OR (r.RequestStatus = 'completed' AND r.Date >= DATE_SUB(NOW(), INTERVAL 7 DAY)))";
 $result = $conn->query($sql);
 $requests = [];
 while ($row = $result->fetch_assoc()) {
@@ -89,7 +93,6 @@ while ($row = $result->fetch_assoc()) {
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -98,12 +101,10 @@ while ($row = $result->fetch_assoc()) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="assets/patient.css">
 </head>
-
 <body>
     <div class="container-fluid">
         <div class="row">
             <?php include 'sidebar.php'; ?>
-
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 main-content">
                 <h2 class="h4 mb-4 fw-bold">Report an Issue</h2>
                 <?php if (isset($_GET['success'])): ?>
@@ -136,7 +137,10 @@ while ($row = $result->fetch_assoc()) {
                                             <option value="">Select a service</option>
                                             <?php foreach ($requests as $req): ?>
                                                 <option value="<?php echo $req['RequestID']; ?>">
-                                                    <?php echo htmlspecialchars($req['Type'] . ' - ' . date('M d, Y', strtotime($req['Date']))); ?>
+                                                    <?php 
+                                                    $nurseName = $req['NurseName'] ? htmlspecialchars($req['NurseName']) : 'Unassigned';
+                                                    echo $nurseName . ' - ' . htmlspecialchars($req['Type']) . ' - ' . date('M d, Y', strtotime($req['Date']));
+                                                    ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
@@ -162,10 +166,6 @@ while ($row = $result->fetch_assoc()) {
             </main>
         </div>
     </div>
-
-
-    <?php include "logout.php" ?>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/patient.js"></script>
 </body>

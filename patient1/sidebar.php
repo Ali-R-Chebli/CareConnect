@@ -56,7 +56,6 @@ if ($row_nurse_user = $result_nurse_user->fetch_assoc()) {
                 <a class="nav-link" href="notifications.php">
                     <i class="fas fa-fw fa-bell"></i>
                     Notifications
-                    <span class="d-inline-block rounded-circle bg-danger ms-3" style="width:10px; height:10px;"></span>
                 </a>
             </li>
             <li class="nav-item">

@@ -2,6 +2,13 @@
 require_once 'db_connection.php';
 session_start();
 
+ $sql = "SELECT * FROM settings 
+                WHERE 1";
+        $result = $conn->query($sql);
+        $settings = $result->fetch_assoc();
+
+
+
 // Initialize variables
 $login_error = '';
 $register_success = '';
@@ -114,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_patient'])) {
         $register_error = 'Please fill in all required fields.';
     } elseif ($password !== $confirm_password) {
         $register_error = 'Passwords do not match.';
-    } elseif (strlen($password) < 8) {
+    } elseif (strlen($password) < 3) {
         $register_error = 'Password must be at least 8 characters long.';
     } else {
         // Check if email already exists
@@ -164,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_patient'])) {
                     $_SESSION['full_name'] = $full_name;
 
                     // Redirect to patient dashboard
-                    header("Location: ../patient1/request_service.php");
+                    header("Location: mainpage.php");
                     exit();
                 } else {
                     $register_error = 'Registration failed. Please try again.';
@@ -556,7 +563,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
         <div class="container">
             <a class="navbar-brand fw-bold" href="#">
                 <i class="fas fa-hand-holding-medical me-2"></i>
-                Home Care
+                <?php echo $settings['SiteName'] ?>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -784,9 +791,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                     <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="About Us" class="img-fluid rounded shadow-lg">
                 </div>
                 <div class="col-lg-6">
-                    <h2 class="display-5 fw-bold mb-4">About Home Care</h2>
+                    <h2 class="display-5 fw-bold mb-4">About <?php echo $settings['SiteName'] ?></h2>
                     <p class="lead text-muted mb-4">Bridging the gap between patients and professional nursing care.</p>
-                    <p>Home Care was founded in 2023 with a mission to make quality healthcare accessible to everyone in the comfort of their homes. Our platform connects patients with a network of highly skilled and compassionate nurses who provide personalized care tailored to individual needs.</p>
+                    <p><?php echo $settings['SiteName'] ?> was founded in 2023 with a mission to make quality healthcare accessible to everyone in the comfort of their homes. Our platform connects patients with a network of highly skilled and compassionate nurses who provide personalized care tailored to individual needs.</p>
                     <p>We understand the challenges of accessing healthcare services, especially for those with mobility issues or chronic conditions. That's why we've created a seamless digital experience that puts you in control of your care.</p>
                     <div class="row mt-4">
                         <div class="col-md-6">
@@ -840,7 +847,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                                     <small class="text-muted">Post-Surgical Patient</small>
                                 </div>
                             </div>
-                            <p class="card-text">"The nurse from Home Care was incredibly professional and caring after my knee surgery. She made sure I understood all my medications and helped me with my physical therapy exercises."</p>
+                            <p class="card-text">"The nurse from <?php echo $settings['SiteName'] ?> was incredibly professional and caring after my knee surgery. She made sure I understood all my medications and helped me with my physical therapy exercises."</p>
                             <div class="text-warning">
                                 <i class="fas fa-star"></i>
                                 <i class="fas fa-star"></i>
@@ -888,7 +895,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                                     <small class="text-muted">Elderly Care</small>
                                 </div>
                             </div>
-                            <p class="card-text">"The care my mother receives through Home Care has given our family peace of mind. The nurses are compassionate and truly go above and beyond."</p>
+                            <p class="card-text">"The care my mother receives through <?php echo $settings['SiteName'] ?> has given our family peace of mind. The nurses are compassionate and truly go above and beyond."</p>
                             <div class="text-warning">
                                 <i class="fas fa-star"></i>
                                 <i class="fas fa-star"></i>
@@ -909,7 +916,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
             <div class="row justify-content-center">
                 <div class="col-lg-8 text-center">
                     <h2 class="display-5 fw-bold mb-4">Ready to Experience Better Home Healthcare?</h2>
-                    <p class="lead mb-4">Join thousands of patients who have transformed their healthcare experience with Home Care.</p>
+                    <p class="lead mb-4">Join thousands of patients who have transformed their healthcare experience with <?php echo $settings['SiteName'] ?>.</p>
                     <div class="d-flex flex-wrap justify-content-center gap-3">
                         <button class="btn btn-light btn-lg px-4" data-bs-toggle="modal" data-bs-target="#registerModal">Get Started</button>
                         <a href="#how-it-works" class="btn btn-outline-light btn-lg px-4">Learn More</a>
@@ -926,7 +933,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                 <div class="col-lg-4">
                     <h3 class="h4 text-white mb-4">
                         <i class="fas fa-hand-holding-medical me-2"></i>
-                        Home Care
+                        <?php echo $settings['SiteName'] ?>
                     </h3>
                     <p class=" footer-paragraph">Connecting patients with professional nursing care in the comfort of their homes.</p>
                     <div class="d-flex gap-3 mt-4">
@@ -962,9 +969,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                 <div class="col-lg-4 col-md-4">
                     <h4 class="h5 text-white mb-4">Contact Us</h4>
                     <ul class="list-unstyled text-muted contact-us">
-                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> 123 Healthcare St, Medical City</li>
-                        <li class="mb-2 "><i class="fas fa-phone me-2"></i> (123) 456-7890</li>
-                        <li class="mb-2 "><i class="fas fa-envelope me-2"></i> info@Home Care.com</li>
+                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> <?php echo $settings['Location'] ?></li>
+                        <li class="mb-2 "><i class="fas fa-phone me-2"></i> <?php echo $settings['ContactPhone'] ?></li>
+                        <li class="mb-2 "><i class="fas fa-envelope me-2"></i> <?php echo $settings['ContactEmail'] ?></li>
                     </ul>
                 </div>
             </div>
@@ -973,7 +980,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
 
             <div class="row">
                 <div class="col-md-6 text-center text-md-start">
-                    <p class="small text-muted mb-0">&copy; 2023 Home Care. All rights reserved.</p>
+                    <p class="small text-muted mb-0">&copy; 2023 <?php echo $settings['SiteName'] ?>. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <p class="small text-muted mb-0">Designed with <i class="fas fa-heart text-danger"></i> for better healthcare</p>
@@ -988,7 +995,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title">Login to Home Care</h5>
+                    <h5 class="modal-title">Login to <?php echo $settings['SiteName'] ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -1106,11 +1113,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register_nurse'])) {
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="patientLatitude" class="form-label">Latitude</label>
-                                        <input type="text" class="form-control" id="patientLatitude" name="latitude" readonly>
+                                        <input type="text" class="form-control" id="patientLatitude" name="latitude" >
                                     </div>
                                     <div class="col-md-6">
                                         <label for="patientLongitude" class="form-label">Longitude</label>
-                                        <input type="text" class="form-control" id="patientLongitude" name="longitude" readonly>
+                                        <input type="text" class="form-control" id="patientLongitude" name="longitude" >
                                     </div>
                                 </div>
                                 <div class="mb-3">
